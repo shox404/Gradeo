@@ -1,0 +1,4 @@
+asyncio
+aiogram
+environs~=8.0.0
+firebase-admin
