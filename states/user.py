@@ -14,3 +14,8 @@ class UpdateUser(StatesGroup):
     fullname = State()
     username = State()
     role = State()
+
+
+class DeleteUser(StatesGroup):
+    user_id = State()
+    confirm_delete = State()

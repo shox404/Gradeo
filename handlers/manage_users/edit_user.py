@@ -1,6 +1,5 @@
 from aiogram import Router
-from aiogram.types import Message
-from aiogram.filters import Command
+from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from states.user import UpdateUser
 from utils.detect_admin import is_admin
@@ -10,16 +9,19 @@ from keyboards.default.role import role_keyboard
 edit_user_router = Router()
 
 
-@edit_user_router.message(Command("edit_user"))
-async def edit_user_start(message: Message, state: FSMContext):
-    if await is_admin(message):
-        edit_user_msg = await message.answer(
+@edit_user_router.callback_query(lambda c: c.data == "edit_user")
+async def edit_user_start(callback_query: CallbackQuery, state: FSMContext):
+    if await is_admin(callback_query):
+        edit_user_msg = await callback_query.message.answer(
             "<b>Please enter the user ID of the user you want to edit.</b>"
         )
         await state.update_data(edit_user_msg_id=edit_user_msg.message_id)
         await state.set_state(UpdateUser.user_id)
     else:
-        await message.answer("⛔ You don't have permission to use this command.")
+        await callback_query.message.answer(
+            "⛔ You don't have permission to use this command."
+        )
+    await callback_query.answer()
 
 
 @edit_user_router.message(UpdateUser.user_id)
