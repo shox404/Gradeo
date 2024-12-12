@@ -30,11 +30,13 @@ async def update_user_data(user_id: int, updated_data: dict):
 
 
 async def delete_user_data(user_id: int):
-    try:
-        user_ref = db.collection("users").document(str(user_id))
+    user_ref = db.collection("users").document(str(user_id))
+    user_doc = user_ref.get()
+    if user_doc.exists:
         user_ref.delete()
-    except Exception as e:
-        print(f"Error deleting user: {e}")
+        return True
+    else:
+        return False
 
 
 async def get_user_data(user_id):

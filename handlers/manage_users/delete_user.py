@@ -68,14 +68,30 @@ async def confirm_delete_user(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
         data = await state.get_data()
         user_id = data.get("user_id")
+        confirm_delete_msg_id = data.get("confirm_delete_msg_id")
+
+        if confirm_delete_msg_id:
+            await callback_query.bot.delete_message(
+                chat_id=callback_query.message.chat.id, message_id=confirm_delete_msg_id
+            )
 
         if callback_query.data == "confirm_delete_yes":
-            await delete_user_data(user_id)
-            await callback_query.message.answer(
-                f"✅ User with ID {user_id} has been deleted."
-            )
+            success = await delete_user_data(user_id)
+            if success:
+                await callback_query.bot.send_message(
+                    chat_id=callback_query.message.chat.id,
+                    text=f"✅ User with ID {user_id} has been deleted.",
+                )
+            else:
+                await callback_query.bot.send_message(
+                    chat_id=callback_query.message.chat.id,
+                    text="❌ Failed to delete user. User may not exist.",
+                )
         else:
-            await callback_query.message.answer("❌ User deletion canceled.")
+            await callback_query.bot.send_message(
+                chat_id=callback_query.message.chat.id,
+                text="❌ User deletion canceled.",
+            )
 
         await state.clear()
 
