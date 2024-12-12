@@ -39,11 +39,16 @@ async def delete_user_data(user_id: int):
         return False
 
 
-async def get_user_data(user_id):
-    user_ref = db.collection("users").document(str(user_id))
-    user_doc = user_ref.get()
+async def get_all_users():
+    user_collection = db.collection("users") 
+    user_docs = user_collection.stream()
 
-    if user_doc.exists:
-        return user_doc.to_dict()
-    else:
-        return None
+    users = []
+    for doc in user_docs:
+        user_data = doc.to_dict()
+        users.append({
+            "id": doc.id, 
+            "fullname": user_data.get("fullname", "Unknown"),
+            "username": user_data.get("username", "N/A"),
+        })
+    return users
