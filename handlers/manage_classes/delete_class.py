@@ -27,15 +27,18 @@ async def delete_class_start(callback_query: CallbackQuery, state: FSMContext):
 @delete_class_router.message(DeleteClass.name)
 async def process_delete_class_name(message: Message, state: FSMContext):
     if await is_admin(message):
-        class_name = message.text
-        print(class_name)
+        class_name = message.text.strip()
+        print(f"Attempting to delete class: {class_name}")
+
         class_data = await get_class_data(class_name)
+
         if not class_data:
             await message.answer(f"❌ No class found with the name '{class_name}'.")
             return
 
         data = await state.get_data()
         delete_class_msg_id = data.get("delete_class_msg_id")
+
         if delete_class_msg_id:
             await message.bot.delete_message(
                 chat_id=message.chat.id, message_id=delete_class_msg_id
@@ -73,7 +76,7 @@ async def confirm_delete_class(callback_query: CallbackQuery, state: FSMContext)
             )
 
         if callback_query.data == "confirm_class_delete_yes":
-            success = await delete_class_data(class_data["name"])
+            success = await delete_class_data(class_data["id"])
             if success:
                 await callback_query.bot.send_message(
                     chat_id=callback_query.message.chat.id,
@@ -82,7 +85,7 @@ async def confirm_delete_class(callback_query: CallbackQuery, state: FSMContext)
             else:
                 await callback_query.bot.send_message(
                     chat_id=callback_query.message.chat.id,
-                    text="❌ Failed to delete class. Class may not exist.",
+                    text="❌ Failed to delete class. The class may not exist.",
                 )
         else:
             await callback_query.bot.send_message(

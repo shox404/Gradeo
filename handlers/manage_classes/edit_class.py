@@ -1,22 +1,21 @@
 from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
-from states.user import UpdateUser
+from states.class_state import ClassState
 from utils.detect_admin import is_admin
-from keyboards.default.role import role_keyboard
 from firebase.functions.classes import update_class_data, get_class_data
 
 edit_class_router = Router()
 
 
-@edit_class_router.callback_query(lambda c: c.data == "edit_class")
+@edit_class_router.callback_query(lambda c: c.data == "update_class")
 async def edit_class_start(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
-        edit_class_msg = await callback_query.message.answer(
-            "<b>Please enter the class ID of the class you want to edit.</b>"
+        msg = await callback_query.message.answer(
+            "<b>Please enter the unique class name you want to edit.</b>"
         )
-        await state.update_data(edit_class_msg_id=edit_class_msg.message_id)
-        await state.set_state(UpdateUser.user_id)
+        await state.update_data(last_bot_msg_id=msg.message_id)
+        await state.set_state(ClassState.edit_choice)
     else:
         await callback_query.message.answer(
             "⛔ You don't have permission to use this command."
@@ -24,118 +23,102 @@ async def edit_class_start(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@edit_class_router.message(UpdateUser.user_id)
-async def process_edit_class_id(message: Message, state: FSMContext):
-    if await is_admin(message):
-        try:
-            class_id = int(message.text)
-            class_data = await get_class_data(class_id)
-            if not class_data:
-                await message.answer("❌ No class found with this ID.")
-                return
+@edit_class_router.message(ClassState.edit_choice)
+async def process_edit_choice(message: Message, state: FSMContext):
+    data = await state.get_data()
+    last_bot_msg_id = data.get("last_bot_msg_id")
 
-            data = await state.get_data()
-            edit_class_msg_id = data.get("edit_class_msg_id")
-            if edit_class_msg_id:
-                await message.bot.delete_message(
-                    chat_id=message.chat.id, message_id=edit_class_msg_id
-                )
+    if last_bot_msg_id:
+        await message.bot.delete_message(message.chat.id, last_bot_msg_id)
+    await message.delete()
 
-            await message.delete()
+    class_name = message.text.strip()
 
-            await state.update_data(class_id=class_id)
-            await state.update_data(class_data=class_data)
+    class_data = await get_class_data(class_name)
 
-            edit_option_msg = await message.answer(
-                "Which option would you like to edit?\n"
-                "1. Class Name\n"
-                "2. Teacher Name\n"
-                "3. Class Role",
-                reply_markup=role_keyboard,
-            )
-            await state.update_data(edit_option_msg_id=edit_option_msg.message_id)
-            await state.set_state(UpdateUser.edit_option)
+    if class_data:
+        await state.update_data(original_name=class_name, class_data=class_data)
 
-        except ValueError:
-            await message.answer(
-                "❌ Invalid class ID. Please enter a valid numeric class ID."
-            )
+        msg = await message.answer(
+            "<b>What would you like to edit?</b>\n"
+            "1. Class Name\n"
+            "2. Teacher Name\n"
+        )
+        await state.update_data(last_bot_msg_id=msg.message_id)
+        await state.set_state(ClassState.edit_option)
+    else:
+        await message.answer("❌ Class not found. Please check the name and try again.")
+        await state.clear()
 
 
-@edit_class_router.message(UpdateUser.edit_option)
+@edit_class_router.message(ClassState.edit_option)
 async def process_edit_option(message: Message, state: FSMContext):
-    if await is_admin(message):
-        data = await state.get_data()
-        edit_option_msg_id = data.get("edit_option_msg_id")
-        if edit_option_msg_id:
-            await message.bot.delete_message(message.chat.id, edit_option_msg_id)
-        await message.delete()
+    data = await state.get_data()
+    last_bot_msg_id = data.get("last_bot_msg_id")
 
-        option = message.text.lower()
-        await state.update_data(edit_option=option)
+    if last_bot_msg_id:
+        await message.bot.delete_message(message.chat.id, last_bot_msg_id)
+    await message.delete()
 
-        if option == "1":
-            name_msg = await message.answer(
-                "<b>Please enter the new class name.</b>"
-            )
-            await state.update_data(name_msg_id=name_msg.message_id)
-            await state.set_state(UpdateUser.fullname)
-        elif option == "2":
-            teacher_name_msg = await message.answer(
-                "<b>Please enter the new teacher name.</b>"
-            )
-            await state.update_data(teacher_name_msg_id=teacher_name_msg.message_id)
-            await state.set_state(UpdateUser.fullname)
-        elif option == "3":
-            role_msg = await message.answer(
-                "<b>Please select the new role for the class.</b>",
-                reply_markup=role_keyboard,
-            )
-            await state.update_data(role_msg_id=role_msg.message_id)
-            await state.set_state(UpdateUser.role)
-        else:
-            await message.answer(
-                "❌ Invalid option. Please choose one of the available options."
-            )
+    choice = message.text.strip()
+
+    if choice == "1":
+        msg = await message.answer("<b>Please enter the new class name.</b>")
+        await state.update_data(last_bot_msg_id=msg.message_id)
+        await state.set_state(ClassState.new_name)
+    elif choice == "2":
+        msg = await message.answer("<b>Please enter the new teacher's name.</b>")
+        await state.update_data(last_bot_msg_id=msg.message_id)
+        await state.set_state(ClassState.new_teacher)
+    else:
+        msg = await message.answer("❌ Invalid option. Please reply with '1' or '2'.")
+        await state.update_data(last_bot_msg_id=msg.message_id)
+        await state.set_state(ClassState.edit_option)
 
 
-@edit_class_router.message(UpdateUser.fullname)
-async def process_name(message: Message, state: FSMContext):
-    if await is_admin(message):
-        data = await state.get_data()
-        name_msg_id = data.get("name_msg_id")
-        if name_msg_id:
-            await message.bot.delete_message(message.chat.id, name_msg_id)
-        await message.delete()
+@edit_class_router.message(ClassState.new_name)
+async def update_class_name(message: Message, state: FSMContext):
+    data = await state.get_data()
+    last_bot_msg_id = data.get("last_bot_msg_id")
 
-        new_name = message.text
-        await state.update_data(new_name=new_name)
+    if last_bot_msg_id:
+        await message.bot.delete_message(message.chat.id, last_bot_msg_id)
+    await message.delete()
 
-        class_id = data.get("class_id")
-        updated_data = {"name": new_name}
+    new_name = message.text.strip()
+    class_data = data["class_data"]
 
-        await update_class_data(class_id, updated_data)
+    class_data["name"] = new_name
 
-        await message.answer(f"✅ Class name has been updated to {new_name}")
-        await state.clear()
+    success = await update_class_data(class_data["id"], {"name": new_name, "teacher": class_data["teacher"]})
+
+    if success:
+        await message.answer("<b>✅ Class name has been successfully updated!</b>")
+    else:
+        await message.answer("❌ Failed to update the class name.")
+    
+    await state.clear()
 
 
-@edit_class_router.message(UpdateUser.role)
-async def process_class_role(message: Message, state: FSMContext):
-    if await is_admin(message):
-        data = await state.get_data()
-        role_msg_id = data.get("role_msg_id")
-        if role_msg_id:
-            await message.bot.delete_message(message.chat.id, role_msg_id)
-        await message.delete()
+@edit_class_router.message(ClassState.new_teacher)
+async def update_teacher_name(message: Message, state: FSMContext):
+    data = await state.get_data()
+    last_bot_msg_id = data.get("last_bot_msg_id")
 
-        new_role = message.text
-        await state.update_data(new_role=new_role)
+    if last_bot_msg_id:
+        await message.bot.delete_message(message.chat.id, last_bot_msg_id)
+    await message.delete()
 
-        class_id = data.get("class_id")
-        updated_data = {"role": new_role}
+    new_teacher = message.text.strip()
+    class_data = data["class_data"]
 
-        await update_class_data(class_id, updated_data)
+    class_data["teacher"] = new_teacher
 
-        await message.answer(f"✅ Class role has been updated to {new_role}")
-        await state.clear()
+    success = await update_class_data(class_data["id"], {"name": class_data["name"], "teacher": new_teacher})
+
+    if success:
+        await message.answer("<b>✅ Teacher name has been successfully updated!</b>")
+    else:
+        await message.answer("❌ Failed to update the teacher's name.")
+
+    await state.clear()
