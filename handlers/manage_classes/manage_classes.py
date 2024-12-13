@@ -2,16 +2,17 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
 from utils.detect_admin import is_admin
-from keyboards.inline.manage_user_keyboard import manage_user_keyboard
+from keyboards.inline.manage_classes_keyboard import manage_classes_keyboard
 
-manage_users_router = Router()
+manage_classes_router = Router()
 
 
-@manage_users_router.message(Command("manage_users"))
-async def manage_users(message: Message):
+@manage_classes_router.message(Command("manage_classes"))
+async def manage_classes(message: Message):
     if await is_admin(message):
         await message.answer(
-            "<b>Choose an option to manage users</b>", reply_markup=manage_user_keyboard
+            "<b>Choose an option to manage classes</b>",
+            reply_markup=manage_classes_keyboard,
         )
     else:
         await message.answer("⛔ You don't have permission to use this command.")

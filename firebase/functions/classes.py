@@ -1,54 +1,72 @@
 from firebase.config import db
 
 
-async def save_user_data(data):
-    doc_ref = db.collection("users").document(str(data["user_id"]))
-    doc_ref.set(data)
-
-
 async def save_class_data(class_data: dict):
-    class_ref = db.collection("classes").document(str(class_data["class_id"]))
-    class_ref.set(class_data)
+    name = class_data.get("name")
+    teacher = class_data.get("teacher")
+
+    if not name:
+        raise ValueError("Class name is required to save class data.")
+
+    class_ref = db.collection("classes").document(name)
+    class_ref.set({"name": name, "teacher": teacher})
 
 
-async def get_user_data(user_id: int):
-    users_ref = db.collection("users")
-    query = users_ref.where("user_id", "==", user_id).limit(1).get()
+async def get_class_data(class_name: str):
+    try:
+        class_ref = db.collection("classes").document(class_name)
+        class_doc = class_ref.get()
 
-    if query:
-        return query[0].to_dict()
-    return None
-
-
-async def update_user_data(user_id: int, updated_data: dict):
-    users_ref = db.collection("users")
-    query = users_ref.where("user_id", "==", user_id).limit(1).get()
-
-    if query:
-        user_ref = query[0].reference
-        user_ref.update(updated_data)
+        if class_doc.exists:
+            class_data = class_doc.to_dict()
+            class_data["id"] = class_doc.id
+            return class_data
+        return None
+    except Exception as e:
+        print(f"Error fetching class data by name: {e}")
+        return None
 
 
-async def delete_user_data(user_id: int):
-    user_ref = db.collection("users").document(str(user_id))
-    user_doc = user_ref.get()
-    if user_doc.exists:
-        user_ref.delete()
-        return True
-    else:
+async def update_class_data(class_name: str, updated_data: dict):
+    try:
+        class_ref = db.collection("classes").document(class_name)
+        class_doc = class_ref.get()
+
+        if class_doc.exists:
+            class_ref.update(updated_data)
+            return True
+        return False
+    except Exception as e:
+        print(f"Error updating class data: {e}")
         return False
 
 
-async def get_all_users():
-    user_collection = db.collection("users") 
-    user_docs = user_collection.stream()
+async def delete_class_data(class_name: str):
+    try:
+        class_ref = db.collection("classes").document(class_name)
+        class_doc = class_ref.get()
 
-    users = []
-    for doc in user_docs:
-        user_data = doc.to_dict()
-        users.append({
-            "id": doc.id, 
-            "fullname": user_data.get("fullname", "Unknown"),
-            "username": user_data.get("username", "N/A"),
-        })
-    return users
+        if class_doc.exists:
+            class_ref.delete()
+            return True
+        return False
+    except Exception as e:
+        print(f"Error deleting class data: {e}")
+        return False
+
+
+async def get_all_classes():
+    try:
+        class_collection = db.collection("classes")
+        class_docs = class_collection.stream()
+
+        classes = []
+        for doc in class_docs:
+            class_data = doc.to_dict()
+            classes.append(
+                {"name": doc.id, "teacher": class_data.get("teacher", "Unknown")}
+            )
+        return classes
+    except Exception as e:
+        print(f"Error fetching all classes: {e}")
+        return []

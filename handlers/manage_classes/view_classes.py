@@ -1,29 +1,29 @@
-from aiogram.types import CallbackQuery
 from aiogram import Router
-from firebase.functions.users import get_all_users
+from aiogram.types import CallbackQuery
+from aiogram.fsm.context import FSMContext
 from utils.detect_admin import is_admin
+from firebase.functions.classes import get_all_classes
 
-view_users_router = Router()
+view_classes_router = Router()
 
 
-@view_users_router.callback_query(lambda c: c.data == "view_users")
-async def view_users(callback_query: CallbackQuery):
+@view_classes_router.callback_query(lambda c: c.data == "view_classes")
+async def view_classes_start(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
-        users = await get_all_users()
-        if not users:
-            await callback_query.message.answer(
-                "📋 <b>No users found in the system.</b>"
-            )
-        else:
-            user_list = "\n".join(
-                [
-                    f"{idx + 1}. {user['fullname']} (@{user['username']}) - ID: {user['id']}"
-                    for idx, user in enumerate(users)
-                ]
-            )
-            await callback_query.message.answer(f"<b>📋 User List</b>\n\n{user_list}")
+        classes = await get_all_classes()
+        if not classes:
+            await callback_query.message.answer("❌ No classes found.")
+            return
+
+        class_list = "\n".join(
+            [
+                f"📚 {class_data['name']} (ID: {class_data['class_id']})"
+                for class_data in classes
+            ]
+        )
+        await callback_query.message.answer(f"<b>Classes:</b>\n{class_list}")
     else:
         await callback_query.message.answer(
-            "⛔ You don't have permission to view the user list."
+            "⛔ You don't have permission to use this command."
         )
     await callback_query.answer()

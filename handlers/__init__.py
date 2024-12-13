@@ -1,14 +1,30 @@
 from app import dp
 from handlers.start import start_router
+
+dp.include_router(start_router)
+
+# users
 from handlers.manage_users.manage_users import manage_users_router
 from handlers.manage_users.add_user import add_user_router
 from handlers.manage_users.edit_user import edit_user_router
 from handlers.manage_users.delete_user import delete_user_router
 from handlers.manage_users.view_users import view_users_router
 
-dp.include_router(start_router)
 dp.include_router(manage_users_router)
 dp.include_router(add_user_router)
 dp.include_router(edit_user_router)
 dp.include_router(delete_user_router)
 dp.include_router(view_users_router)
+
+# classes
+from handlers.manage_classes.manage_classes import manage_classes_router
+from handlers.manage_classes.add_class import add_class_router
+from handlers.manage_classes.edit_class import edit_class_router
+from handlers.manage_classes.delete_class import delete_class_router
+from handlers.manage_classes.view_classes import view_classes_router
+
+dp.include_router(manage_classes_router)
+dp.include_router(add_class_router)
+dp.include_router(edit_class_router)
+dp.include_router(delete_class_router)
+dp.include_router(view_classes_router)

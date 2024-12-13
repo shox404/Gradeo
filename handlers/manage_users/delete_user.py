@@ -4,7 +4,7 @@ from aiogram.fsm.context import FSMContext
 from states.user import DeleteUser
 from utils.detect_admin import is_admin
 from firebase.functions.users import delete_user_data, get_user_data
-from keyboards.inline.delete_confirmation_keyboard import delete_confirmation_keyboard
+from keyboards.inline.delete_user_keyboard import delete_confirmation_keyboard
 
 delete_user_router = Router()
 
@@ -46,13 +46,15 @@ async def process_delete_user_id(message: Message, state: FSMContext):
             await state.update_data(user_id=user_id)
             await state.update_data(user_data=user_data)
 
-            confirm_delete_msg = await message.answer(
+            confirm_user_delete_msg = await message.answer(
                 f"Are you sure you want to delete the user with ID {user_id}?\n"
                 f"Name: {user_data['fullname']}\n"
                 f"Username: @{user_data['username']}",
                 reply_markup=delete_confirmation_keyboard,
             )
-            await state.update_data(confirm_delete_msg_id=confirm_delete_msg.message_id)
+            await state.update_data(
+                confirm_user_delete_msg_id=confirm_user_delete_msg.message_id
+            )
             await state.set_state(DeleteUser.confirm_delete)
 
         except ValueError:
@@ -62,20 +64,21 @@ async def process_delete_user_id(message: Message, state: FSMContext):
 
 
 @delete_user_router.callback_query(
-    lambda c: c.data in ["confirm_delete_yes", "confirm_delete_no"]
+    lambda c: c.data in ["confirm_user_delete_yes", "confirm_user_delete_no"]
 )
 async def confirm_delete_user(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
         data = await state.get_data()
         user_id = data.get("user_id")
-        confirm_delete_msg_id = data.get("confirm_delete_msg_id")
+        confirm_user_delete_msg_id = data.get("confirm_user_delete_msg_id")
 
-        if confirm_delete_msg_id:
+        if confirm_user_delete_msg_id:
             await callback_query.bot.delete_message(
-                chat_id=callback_query.message.chat.id, message_id=confirm_delete_msg_id
+                chat_id=callback_query.message.chat.id,
+                message_id=confirm_user_delete_msg_id,
             )
 
-        if callback_query.data == "confirm_delete_yes":
+        if callback_query.data == "confirm_user_delete_yes":
             success = await delete_user_data(user_id)
             if success:
                 await callback_query.bot.send_message(
