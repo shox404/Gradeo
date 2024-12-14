@@ -61,6 +61,10 @@ async def process_user_id(message: Message, state: FSMContext):
         user_id = int(message.text)
         await state.update_data(user_id=user_id)
     except ValueError:
+        # Handle multiple error messages stacking by deleting previous error
+        error_msg_id = data.get("error_msg_id")
+        if error_msg_id:
+            await message.bot.delete_message(message.chat.id, error_msg_id)
         error_msg = await message.answer(
             "❌ Invalid user ID. Please enter a valid numeric user ID."
         )
@@ -146,29 +150,29 @@ async def finalize_user_data(
     username = data.get("username")
     role = data.get("role")
     class_id = data.get("student_class") if role == "Student" else None
-    student_class = await get_class_data(class_id)
+    student_class = await get_class_data(class_id) if class_id else None
+
+    # Display user information
+    info_message = (
+        f"<b>New {role} added</b>\n"
+        f"👤 <b>Name:</b> {fullname}\n"
+        f"🆔 <b>ID:</b> {user_id}\n"
+        f"🌐 <b>Username:</b> {username}\n"
+    )
+    if student_class:
+        info_message += f"🏫 <b>Class:</b> {student_class['name']}"
+
     if isinstance(message_or_callback, Message):
-        await message_or_callback.answer(
-            f"<b>New {role} added</b>\n"
-            f"👤 <b>Name:</b> {fullname}\n"
-            f"🆔 <b>ID:</b> {user_id}\n"
-            f"🌐 <b>Username:</b> {username}\n"
-            f"🏫 <b>Class:</b> {student_class['name']}"
-        )
+        await message_or_callback.answer(info_message)
     elif isinstance(message_or_callback, CallbackQuery):
-        await message_or_callback.message.answer(
-            f"<b>New {role} added</b>\n"
-            f"👤 <b>Name:</b> {fullname}\n"
-            f"🆔 <b>ID:</b> {user_id}\n"
-            f"🌐 <b>Username:</b> {username}\n"
-            f"🏫 <b>Class:</b> {student_class['name']}"
-        )
+        await message_or_callback.message.answer(info_message)
+
     user_data = {
         "fullname": fullname,
         "user_id": user_id,
         "username": username,
         "role": role,
-        "class": student_class['id'],
+        "class": student_class["id"] if student_class else None,
     }
     await save_user_data(user_data)
     await state.clear()
@@ -177,19 +181,12 @@ async def finalize_user_data(
 @add_user_router.callback_query(lambda c: c.data == "cancel_add_user")
 async def cancel_add_user(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-
-    fullname_msg_id = data.get("fullname_msg_id")
-    user_id_msg_id = data.get("user_id_msg_id")
-    username_msg_id = data.get("username_msg_id")
-    role_msg_id = data.get("role_msg_id")
-    class_msg_id = data.get("class_msg_id")
-
     msg_ids_to_delete = [
-        fullname_msg_id,
-        user_id_msg_id,
-        username_msg_id,
-        role_msg_id,
-        class_msg_id,
+        data.get("fullname_msg_id"),
+        data.get("user_id_msg_id"),
+        data.get("username_msg_id"),
+        data.get("role_msg_id"),
+        data.get("class_msg_id"),
     ]
 
     for msg_id in msg_ids_to_delete:

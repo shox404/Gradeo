@@ -1,12 +1,44 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
+manage_user_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Add User", callback_data="add_user"),
+        ],
+        [
+            InlineKeyboardButton(text="Edit User", callback_data="edit_user"),
+            InlineKeyboardButton(text="Delete User", callback_data="delete_user"),
+        ],
+    ]
+)
+
+delete_confirmation_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Yes", callback_data="confirm_user_delete_yes")],
+        [InlineKeyboardButton(text="No", callback_data="confirm_user_delete_no")],
+    ]
+)
+
 
 def create_keyboard(rows):
     """Helper function to create inline keyboards with multiple rows."""
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-async def class_keyboard(classes):
+def class_selection_keyboard(classes: list, student_id: str) -> InlineKeyboardMarkup:
+    keyboard = InlineKeyboardMarkup()
+    for cls in classes:
+        keyboard.add(
+            InlineKeyboardButton(
+                text=cls["class_name"],
+                callback_data=f"change_class_{student_id}_{cls['class_id']}",
+            )
+        )
+    keyboard.add(InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_students"))
+    return keyboard
+
+
+async def class_keyboard(classes, method):
     """
     Generate a keyboard for selecting classes.
     Each button represents a class with its name, arranged in 3 columns.
@@ -14,7 +46,8 @@ async def class_keyboard(classes):
     inline_keyboard = [
         [
             InlineKeyboardButton(
-                text=class_data["name"], callback_data=f"class_{class_data['id']}"
+                text=class_data["name"],
+                callback_data=f"class_{method}_{class_data['id']}",
             )
             for class_data in classes[i : i + 3]
         ]
@@ -23,7 +56,7 @@ async def class_keyboard(classes):
     return create_keyboard(inline_keyboard)
 
 
-async def user_keyboard(users):
+async def user_keyboard(users, method):
     """
     Generate a keyboard for selecting users within a class.
     Each button represents a user with their full name and username, arranged in 3 columns.
@@ -32,28 +65,57 @@ async def user_keyboard(users):
         [
             InlineKeyboardButton(
                 text=f"{user['fullname']} (@{user['username']})",
-                callback_data=f"student_{user['id']}",
+                callback_data=f"student_{method}_{user['id']}",
             )
             for user in users[i : i + 3]
         ]
         for i in range(0, len(users), 3)
     ]
+
     inline_keyboard.append(
         [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_classes")]
     )
+
     return create_keyboard(inline_keyboard)
 
 
-edit_options_keyboard = create_keyboard(
-    [
+edit_options_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
         [
-            InlineKeyboardButton(text="📝 Full Name", callback_data="edit_fullname"),
-            InlineKeyboardButton(text="👤 Username", callback_data="edit_username"),
+            InlineKeyboardButton(
+                text="✏️ Edit Full Name", callback_data="edit_fullname"
+            ),
+            InlineKeyboardButton(text="✏️ Edit Username", callback_data="edit_username"),
+        ],
+        [
+            InlineKeyboardButton(text="✏️ Edit Class", callback_data="edit_class"),
         ],
         [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_students")],
     ]
 )
 
+
 cancel_keyboard = create_keyboard(
     [[InlineKeyboardButton(text="❌ Cancel", callback_data="cancel_add_user")]]
 )
+
+
+def student_edit_keyboard(student_id: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="✏️ Full Name", callback_data=f"edit_fullname_{student_id}"
+                ),
+                InlineKeyboardButton(
+                    text="✏️ Username", callback_data=f"edit_username_{student_id}"
+                ),
+            ],
+            [
+                InlineKeyboardButton(
+                    text="🔄 Change Class", callback_data=f"edit_class_{student_id}"
+                )
+            ],
+            [InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_students")],
+        ]
+    )

@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import Message
 from aiogram.filters import Command
 from utils.detect_admin import is_admin
-from keyboards.inline.manage_user_keyboard import manage_user_keyboard
+from keyboards.inline.users import manage_user_keyboard
 
 manage_users_router = Router()
 

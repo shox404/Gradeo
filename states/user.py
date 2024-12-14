@@ -11,6 +11,7 @@ class User(StatesGroup):
 
 class UpdateUser(StatesGroup):
     user_id = State()
+    class_name = State()
     edit_option = State()
     fullname = State()
     username = State()
