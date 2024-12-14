@@ -13,20 +13,21 @@ async def save_class_data(class_data: dict):
     print("Class data saved successfully.")
 
 
-async def get_class_data(class_name: str):
-    """Retrieve class data by class name."""
+async def get_class_data(id):
+    """Retrieve class data by class ID."""
     try:
-        class_ref = db.collection("classes").where("name", "==", class_name)
-        results = class_ref.stream()
+        class_ref = db.collection("classes").document(str(id))
+        class_doc = class_ref.get()
 
-        for class_doc in results:
+        if class_doc.exists:
             class_data = class_doc.to_dict()
             class_data["id"] = class_doc.id
             return class_data
-
-        return None
+        else:
+            print(f"No class found with ID: {id}")
+            return None
     except Exception as e:
-        print(f"Error fetching class data by name: {e}")
+        print(f"Error fetching class data by ID: {e}")
         return None
 
 

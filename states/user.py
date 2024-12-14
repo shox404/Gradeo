@@ -5,6 +5,7 @@ class User(StatesGroup):
     fullname = State()
     role = State()
     username = State()
+    student_class = State()
     user_id = State()
 
 

@@ -5,6 +5,7 @@ from states.user import User
 from utils.detect_admin import is_admin
 from keyboards.default.role import role_keyboard
 from firebase.functions.users import save_user_data
+from keyboards.inline.classes import classes_keyboard
 
 add_user_router = Router()
 
@@ -94,32 +95,69 @@ async def process_role_message(message: Message, state: FSMContext):
         role_msg_id = data.get("role_msg_id")
         if role_msg_id:
             await message.bot.delete_message(message.chat.id, role_msg_id)
-
+        await message.delete()
 
         role = message.text
         await state.update_data(role=role)
-            
-        await message.delete()
 
-        fullname = data.get("fullname")
-        user_id = data.get("user_id")
-        username = data.get("username")
+        if role == "Student":
+            class_keyboard = await classes_keyboard()
+            class_msg = await message.answer(
+                "<b>Please select the class of the student.</b>",
+                reply_markup=class_keyboard,
+            )
+            await state.update_data(class_msg_id=class_msg.message_id)
+            await state.set_state(User.student_class)
+        else:
+            await finalize_user_data(message, state)
 
-        await message.answer(
-            f"<b>New user added</b>\n"
-            f"👤 <b>Name:</b> {fullname}\n"
-            f"🆔 <b>ID:</b> {user_id}\n"
-            f"🌐 <b>Username:</b> {username}\n"
-            f"📘 <b>Role:</b> {role}"
-        )
 
-        await save_user_data(
-            {
-                "fullname": fullname,
-                "user_id": user_id,
-                "username": username,
-                "role": role,
-            }
-        )
+@add_user_router.callback_query(lambda c: len(c.data) == 20)
+async def process_student_class(callback_query: CallbackQuery, state: FSMContext):
+    if await is_admin(callback_query):
+        data = await state.get_data()
+        class_msg_id = data.get("class_msg_id")
 
-        await state.clear()
+        if class_msg_id:
+            await callback_query.bot.delete_message(
+                callback_query.message.chat.id, class_msg_id
+            )
+
+        await state.update_data(student_class=callback_query.data)
+
+        await finalize_user_data(callback_query, state)
+
+
+async def finalize_user_data(message: Message, state: FSMContext):
+    data = await state.get_data()
+
+    fullname = data.get("fullname")
+    user_id = data.get("user_id")
+    username = data.get("username")
+    role = data.get("role")
+    student_class = data.get("student_class") if role == "Student" else None
+
+    details = (
+        f"<b>New user added</b>\n"
+        f"👤 <b>Name:</b> {fullname}\n"
+        f"🆔 <b>ID:</b> {user_id}\n"
+        f"🌐 <b>Username:</b> {username}\n"
+        f"📘 <b>Role:</b> {role}"
+    )
+
+    if student_class:
+        details += f"\n🏫 <b>Class:</b> {student_class}"
+
+    await message.answer(details)
+
+    user_data = {
+        "fullname": fullname,
+        "user_id": user_id,
+        "username": username,
+        "role": role,
+    }
+    if student_class:
+        user_data["class"] = student_class
+
+    await save_user_data(user_data)
+    await state.clear()

@@ -19,10 +19,8 @@ from handlers.manage_classes.manage_classes import manage_classes_router
 from handlers.manage_classes.add_class import add_class_router
 from handlers.manage_classes.edit_class import edit_class_router
 from handlers.manage_classes.delete_class import delete_class_router
-from handlers.manage_classes.view_classes import view_classes_router
 
 dp.include_router(manage_classes_router)
 dp.include_router(add_class_router)
 dp.include_router(edit_class_router)
 dp.include_router(delete_class_router)
-dp.include_router(view_classes_router)
