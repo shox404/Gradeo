@@ -9,8 +9,7 @@ async def save_class_data(class_data: dict):
     if not name:
         raise ValueError("Class name is required to save class data.")
 
-    class_ref = db.collection("classes").add({"name": name, "teacher": teacher})
-    print("Class data saved successfully.")
+    db.collection("classes").add({"name": name, "teacher": teacher})
 
 
 async def get_class_data(id):
@@ -24,10 +23,8 @@ async def get_class_data(id):
             class_data["id"] = class_doc.id
             return class_data
         else:
-            print(f"No class found with ID: {id}")
             return None
     except Exception as e:
-        print(f"Error fetching class data by ID: {e}")
         return None
 
 
@@ -44,7 +41,6 @@ async def update_class_data(class_id: str, updated_data: dict):
             return False
 
     except Exception as e:
-        print(f"Error updating class data: {e}")
         return False
 
 
@@ -61,7 +57,6 @@ async def delete_class_data(class_id: str):
             return False
 
     except Exception as e:
-        print(f"Error deleting class data: {e}")
         return False
 
 
@@ -84,5 +79,4 @@ async def get_all_classes():
 
         return classes
     except Exception as e:
-        print(f"Error fetching all classes: {e}")
         return []
