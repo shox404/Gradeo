@@ -7,8 +7,11 @@ class ClassState(StatesGroup):
     edit_choice = State()
     edit_option = State()
     new_name = State()
+    new_class_name = State()
     new_teacher = State()
-
+    new_class_teacher = State()
+    confirm_delete = State()
+    
 
 class DeleteClass(StatesGroup):
     name = State()

@@ -1,5 +1,5 @@
 from aiogram import Router
-from aiogram.types import Message, CallbackQuery
+from aiogram.types import CallbackQuery
 from aiogram.fsm.context import FSMContext
 from states.class_state import DeleteClass
 from utils.detect_admin import is_admin

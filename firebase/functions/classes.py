@@ -6,9 +6,6 @@ async def save_class_data(class_data: dict):
     name = class_data.get("name")
     teacher = class_data.get("teacher")
 
-    if not name:
-        raise ValueError("Class name is required to save class data.")
-
     db.collection("classes").add({"name": name, "teacher": teacher})
 
 

@@ -1,36 +1,59 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from firebase.functions.users import get_all_users
 
 
-async def get_user_keyboard():
+def create_keyboard(rows):
+    """Helper function to create inline keyboards with multiple rows."""
+    return InlineKeyboardMarkup(inline_keyboard=rows)
+
+
+async def class_keyboard(classes):
     """
-    Fetch the list of users and return a 3-column inline keyboard.
+    Generate a keyboard for selecting classes.
+    Each button represents a class with its name, arranged in 3 columns.
     """
-    users = await get_all_users()
-
-    buttons = []
-    for i in range(0, len(users), 3):
-        row = [
+    inline_keyboard = [
+        [
             InlineKeyboardButton(
-                text=user.get("name", "Unnamed User"),
-                callback_data=user.get("id", "0"),
+                text=class_data["name"], callback_data=f"class_{class_data['id']}"
+            )
+            for class_data in classes[i : i + 3]
+        ]
+        for i in range(0, len(classes), 3)
+    ]
+    return create_keyboard(inline_keyboard)
+
+
+async def user_keyboard(users):
+    """
+    Generate a keyboard for selecting users within a class.
+    Each button represents a user with their full name and username, arranged in 3 columns.
+    """
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=f"{user['fullname']} (@{user['username']})",
+                callback_data=f"student_{user['id']}",
             )
             for user in users[i : i + 3]
         ]
-        buttons.append(row)
-
-    keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
-
-    return keyboard
-
-
-def get_edit_options_keyboard():
-    """
-    Generate an inline keyboard for editing options.
-    """
-    buttons = [
-        InlineKeyboardButton(text="Full Name", callback_data="edit_option_fullname"),
-        InlineKeyboardButton(text="Username", callback_data="edit_option_username"),
+        for i in range(0, len(users), 3)
     ]
-    return InlineKeyboardMarkup(inline_keyboard=[buttons])
+    inline_keyboard.append(
+        [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_classes")]
+    )
+    return create_keyboard(inline_keyboard)
 
+
+edit_options_keyboard = create_keyboard(
+    [
+        [
+            InlineKeyboardButton(text="📝 Full Name", callback_data="edit_fullname"),
+            InlineKeyboardButton(text="👤 Username", callback_data="edit_username"),
+        ],
+        [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_students")],
+    ]
+)
+
+cancel_keyboard = create_keyboard(
+    [[InlineKeyboardButton(text="❌ Cancel", callback_data="cancel_add_user")]]
+)

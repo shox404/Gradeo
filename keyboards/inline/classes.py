@@ -34,6 +34,8 @@ async def classes_keyboard(classes, method):
         text = "_delete_class"
     elif method == "edit":
         text = "_edit_class"
+    elif method == "add_user":
+        text = "_add_user"
 
     rows.append([InlineKeyboardButton(text="Cancel", callback_data=f"cancel{text}")])
     return InlineKeyboardMarkup(inline_keyboard=rows)
@@ -51,7 +53,9 @@ edit_option_keyboard = InlineKeyboardMarkup(
 
 delete_confirmation_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [InlineKeyboardButton(text="Yes", callback_data="confirm_class_delete_yes")],
-        [InlineKeyboardButton(text="No", callback_data="confirm_class_delete_no")],
+        [
+            InlineKeyboardButton(text="Yes", callback_data="confirm_class_delete_yes"),
+            InlineKeyboardButton(text="No", callback_data="confirm_class_delete_no"),
+        ],
     ]
 )
