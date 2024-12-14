@@ -1,6 +1,19 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
+manage_classes_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Add Class", callback_data="add_class"),
+        ],
+        [
+            InlineKeyboardButton(text="Update Class", callback_data="update_class"),
+            InlineKeyboardButton(text="Delete Class", callback_data="delete_class"),
+        ],
+    ]
+)
+
+
 async def classes_keyboard(classes, method):
     """
     Create an inline keyboard with class buttons.
