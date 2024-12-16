@@ -1,18 +1,23 @@
 from aiogram.types import Message
 from aiogram.filters import CommandStart
 from aiogram import Router
-from utils.commands import set_admin_commands
+from utils.commands import set_admin_commands, set_teacher_commands
 from utils.detect_admin import is_admin
 from data.config import ADMINS
 from app import bot
+from firebase.functions.users import get_user_data
 
 start_router = Router()
 
 
 @start_router.message(CommandStart())
 async def start(message: Message):
+    user = await get_user_data(message.from_user.id)
+    print(user)
     if await is_admin(message):
         await set_admin_commands()
+    elif user and user["role"] == "Teacher":
+        await set_teacher_commands()
     else:
         for admin in ADMINS:
             user = message.from_user
