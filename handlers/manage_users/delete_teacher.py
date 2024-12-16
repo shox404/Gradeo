@@ -69,6 +69,7 @@ async def process_teacher_selection(callback_query: CallbackQuery, state: FSMCon
 async def confirm_delete_teacher(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     teacher_id = data.get("teacher_id")
+    print(teacher_id)
     confirm_teacher_delete_msg_id = data.get("confirm_teacher_delete_msg_id")
     print(callback_query.data) # frewuigrywgrueryeywrgfyuegrueywgrfgewyrfgyuegwyrfgeywgryuegwryfgeur
     if confirm_teacher_delete_msg_id:
@@ -79,6 +80,7 @@ async def confirm_delete_teacher(callback_query: CallbackQuery, state: FSMContex
 
     if callback_query.data == "confirm_teacher_delete_yes":
         success = await delete_user_data(teacher_id)
+        print(success)
         if success:
             await callback_query.bot.send_message(
                 chat_id=callback_query.message.chat.id,

@@ -34,7 +34,7 @@ async def teacher_keyboard(teachers, method):
         [
             InlineKeyboardButton(
                 text=f"{teacher['fullname']} (@{teacher['username']})",
-                callback_data=f"{method}_teacher_{teacher['id']}",
+                callback_data=f"teacher_{method}_{teacher['id']}",
             )
             for teacher in teachers[i : i + 3]
         ]
