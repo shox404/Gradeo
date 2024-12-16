@@ -16,7 +16,7 @@ async def start(message: Message):
     else:
         for admin in ADMINS:
             user = message.from_user
-            full_name = f"{user.first_name} {user.last_name is not None if user.last_name else ""}"
+            full_name = f"{user.first_name} {user.last_name if user.last_name is not None else ""}"
             data = f"<b>Full Name: <i>{full_name}</i></b>\n<b>ID: <i>{user.id}</i></b> \n<b>User Name: <i>@{user.username}</i></b>"
             await bot.send_message(admin, data)
     await message.answer(f"Salom, {message.from_user.full_name}!")

@@ -6,11 +6,11 @@ from aiogram.types import (
     InlineKeyboardButton,
 )
 from aiogram.fsm.context import FSMContext
-from states.user import UpdateUser
+from states.user import UpdateStudent
 from firebase.functions.users import get_user_data, update_user_data, get_users_in_class
 from firebase.functions.classes import get_all_classes, get_class_data
 
-edit_user_router = Router()
+edit_student_router = Router()
 
 
 def class_keyboard(classes) -> InlineKeyboardMarkup:
@@ -89,7 +89,7 @@ def class_selection_keyboard(classes, student_id: str) -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(inline_keyboard=buttons)
 
 
-@edit_user_router.callback_query(lambda c: c.data == "edit_user")
+@edit_student_router.callback_query(lambda c: c.data == "edit_student")
 async def handle_edit_user(callback_query: CallbackQuery):
     """Entry point_ Select a class."""
     classes = await get_all_classes()
@@ -104,7 +104,7 @@ async def handle_edit_user(callback_query: CallbackQuery):
     await callback_query.answer()
 
 
-@edit_user_router.callback_query(lambda c: c.data.startswith("select_class_"))
+@edit_student_router.callback_query(lambda c: c.data.startswith("select_class_"))
 async def handle_class_selection(callback_query: CallbackQuery, state: FSMContext):
     """Select a student from the chosen class."""
     class_id = callback_query.data.split("_")[2]
@@ -121,7 +121,7 @@ async def handle_class_selection(callback_query: CallbackQuery, state: FSMContex
     await callback_query.answer()
 
 
-@edit_user_router.callback_query(lambda c: c.data.startswith("select_student_"))
+@edit_student_router.callback_query(lambda c: c.data.startswith("select_student_"))
 async def handle_student_selection(callback_query: CallbackQuery, state: FSMContext):
     """Provide options for editing the selected student."""
     _, _, _, student_id = callback_query.data.split("_")
@@ -146,7 +146,7 @@ async def handle_student_selection(callback_query: CallbackQuery, state: FSMCont
     await callback_query.answer()
 
 
-@edit_user_router.callback_query(lambda c: c.data.startswith("edit_fullname_"))
+@edit_student_router.callback_query(lambda c: c.data.startswith("edit_fullname_"))
 async def handle_edit_fullname(callback_query: CallbackQuery, state: FSMContext):
     """Prompt for a new full name."""
     student_id = callback_query.data.split("_")[2]
@@ -155,11 +155,11 @@ async def handle_edit_fullname(callback_query: CallbackQuery, state: FSMContext)
         "<b>Please enter the new full name</b>"
     )
     await state.update_data(fullname_msg_id=fullname_msg.message_id)
-    await state.set_state(UpdateUser.fullname)
+    await state.set_state(UpdateStudent.fullname)
     await callback_query.answer()
 
 
-@edit_user_router.callback_query(lambda c: c.data.startswith("edit_username_"))
+@edit_student_router.callback_query(lambda c: c.data.startswith("edit_username_"))
 async def handle_edit_username(callback_query: CallbackQuery, state: FSMContext):
     """Prompt for a new username."""
     student_id = callback_query.data.split("_")[2]
@@ -168,11 +168,11 @@ async def handle_edit_username(callback_query: CallbackQuery, state: FSMContext)
         "<b>Please enter the new username</b>"
     )
     await state.update_data(username_msg_id=username_msg.message_id)
-    await state.set_state(UpdateUser.username)
+    await state.set_state(UpdateStudent.username)
     await callback_query.answer()
 
 
-@edit_user_router.callback_query(lambda c: c.data.startswith("edit_class_"))
+@edit_student_router.callback_query(lambda c: c.data.startswith("edit_class_"))
 async def handle_edit_class(callback_query: CallbackQuery, state: FSMContext):
     """Prompt to select a new class for the student."""
     student_id = callback_query.data.split("_")[2]
@@ -188,7 +188,7 @@ async def handle_edit_class(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@edit_user_router.message(UpdateUser.fullname)
+@edit_student_router.message(UpdateStudent.fullname)
 async def process_edit_fullname(message: Message, state: FSMContext):
     """Update the student's full name and delete the prompt message."""
     new_fullname = message.text
@@ -217,7 +217,7 @@ async def process_edit_fullname(message: Message, state: FSMContext):
     await state.clear()
 
 
-@edit_user_router.message(UpdateUser.username)
+@edit_student_router.message(UpdateStudent.username)
 async def process_edit_username(message: Message, state: FSMContext):
     """Update the student's username and delete the prompt message."""
     new_username = message.text
@@ -246,7 +246,7 @@ async def process_edit_username(message: Message, state: FSMContext):
     await state.clear()
 
 
-@edit_user_router.callback_query(lambda c: c.data.startswith("change_class_"))
+@edit_student_router.callback_query(lambda c: c.data.startswith("change_class_"))
 async def process_change_class(callback_query: CallbackQuery):
     """Update the student's class."""
     _, _, student_id, new_class_id = callback_query.data.split("_")
@@ -256,7 +256,7 @@ async def process_change_class(callback_query: CallbackQuery):
     await callback_query.answer()
 
 
-@edit_user_router.callback_query(lambda c: c.data == "back_to_students")
+@edit_student_router.callback_query(lambda c: c.data == "back_to_students")
 async def back_to_students(callback_query: CallbackQuery, state: FSMContext):
     """Go back to the student list."""
     data = await state.get_data()
@@ -274,7 +274,7 @@ async def back_to_students(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@edit_user_router.callback_query(lambda c: c.data.startswith("back_to_edit_"))
+@edit_student_router.callback_query(lambda c: c.data.startswith("back_to_edit_"))
 async def back_to_edit_options(callback_query: CallbackQuery, state: FSMContext):
     """Go back to the edit options after changing the class."""
     student_id = callback_query.data.split("_")[2]

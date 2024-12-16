@@ -1,10 +1,68 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from firebase.functions.subjects import get_all_subjects
+from aiogram.types import InlineKeyboardMarkup
+
+
+def create_keyboard(buttons):
+    """
+    Creates an InlineKeyboardMarkup object from a list of button rows.
+    """
+    return InlineKeyboardMarkup(inline_keyboard=buttons)
+
+
+async def subject_keyboard(subjects, method):
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=f"{subject['name']}",
+                callback_data=f"{method}_subject_{subject['id']}",
+            )
+            for subject in subjects[i : i + 3]
+        ]
+        for i in range(0, len(subjects), 3)
+    ]
+
+    inline_keyboard.append(
+        [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_classes")]
+    )
+
+    return create_keyboard(inline_keyboard)
+
+
+async def teacher_keyboard(teachers, method):
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=f"{teacher['fullname']} (@{teacher['username']})",
+                callback_data=f"{method}_teacher_{teacher['id']}",
+            )
+            for teacher in teachers[i : i + 3]
+        ]
+        for i in range(0, len(teachers), 3)
+    ]
+
+    inline_keyboard.append(
+        [InlineKeyboardButton(text="🔙 Back", callback_data="back_to_subjects")]
+    )
+
+    return create_keyboard(inline_keyboard)
+
+
+async def subject_keyboard(subjects, action):
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=subject["name"], callback_data=f"subject_{action}_{subject['id']}"
+            )
+        ]
+        for subject in subjects
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)
+
 
 manage_user_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
-        [
-            InlineKeyboardButton(text="Add User", callback_data="add_user"),
-        ],
+        [InlineKeyboardButton(text="Add User", callback_data="add_user")],
         [
             InlineKeyboardButton(text="Edit User", callback_data="edit_user"),
             InlineKeyboardButton(text="Delete User", callback_data="delete_user"),
@@ -12,10 +70,37 @@ manage_user_keyboard = InlineKeyboardMarkup(
     ]
 )
 
+edit_user_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Edit Student", callback_data="edit_student"),
+            InlineKeyboardButton(text="Edit Teacher", callback_data="edit_teacher"),
+        ],
+        [InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_manage_users")],
+    ]
+)
+
+delete_user_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Delete Student", callback_data="delete_student"),
+            InlineKeyboardButton(text="Delete Teacher", callback_data="delete_teacher"),
+        ],
+        [InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_manage_users")],
+    ]
+)
+
 delete_confirmation_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [InlineKeyboardButton(text="Yes", callback_data="confirm_user_delete_yes")],
         [InlineKeyboardButton(text="No", callback_data="confirm_user_delete_no")],
+    ]
+)
+
+delete_teacher_confirmation_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [InlineKeyboardButton(text="Yes", callback_data="confirm_teacher_delete_yes")],
+        [InlineKeyboardButton(text="No", callback_data="confirm_teacher_delete_no")],
     ]
 )
 
@@ -119,3 +204,23 @@ def student_edit_keyboard(student_id: str) -> InlineKeyboardMarkup:
             [InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_students")],
         ]
     )
+
+
+async def subjects_keyboard():
+    subjects = await get_all_subjects()
+
+    inline_keyboard = [
+        [
+            InlineKeyboardButton(
+                text=subject["name"], callback_data=f"subject_add_{subject["id"]}"
+            )
+            for subject in subjects[i : i + 2]
+        ]
+        for i in range(0, len(subjects), 2)
+    ]
+
+    inline_keyboard.append(
+        [InlineKeyboardButton(text="Cancel", callback_data="cancel_add_user")]
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=inline_keyboard)

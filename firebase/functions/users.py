@@ -9,6 +9,72 @@ async def get_user_data(user_id: int):
     return None
 
 
+async def update_teacher_data(teacher_id: str, update_data: dict) -> None:
+    """
+    Update a teacher's data in the Firestore database.
+    """
+    db = firestore.client()
+    teacher_ref = db.collection("users").document(teacher_id)
+
+    teacher_ref.update(update_data)
+
+
+async def get_teachers_by_subject(subject_id: str) -> list:
+    """
+    Fetches a list of teachers associated with a given subject.
+    """
+    db = firestore.client()
+    teachers_ref = db.collection("users")
+
+    query = teachers_ref.where("position", "==", subject_id)
+    results = query.stream()
+
+    teachers = []
+    for doc in results:
+        teacher = doc.to_dict()
+        teacher["id"] = doc.id
+        teachers.append(teacher)
+
+    return teachers
+
+
+async def get_teacher_data(teacher_id: str) -> dict:
+    """
+    Fetch teacher data by ID from the database.
+    """
+    from firebase_admin import firestore
+
+    db = firestore.client()
+    teacher_ref = db.collection("users").document(teacher_id)
+    teacher_snapshot = teacher_ref.get()
+
+    if teacher_snapshot.exists:
+        return teacher_snapshot.to_dict()
+    else:
+        return None
+
+
+from firebase_admin import firestore
+
+
+async def get_all_teachers():
+    """Retrieve all teachers from the database."""
+    db = firestore.client()
+    teachers_ref = db.collection("users")
+    query = teachers_ref.where("role", "==", "Teacher")
+    try:
+        teachers = []
+        docs = query.stream()
+        for doc in docs:
+            teacher = doc.to_dict()
+            teacher["id"] = doc.id
+            teachers.append(teacher)
+        return teachers
+    except Exception as e:
+        print(f"Error fetching teachers: {e}")
+        return []
+
+
 async def get_all_users():
     user_collection = db.collection("users")
     user_docs = user_collection.stream()

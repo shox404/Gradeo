@@ -11,10 +11,10 @@ from keyboards.inline.users import (
     delete_confirmation_keyboard,
 )
 
-delete_user_router = Router()
+delete_student_router = Router()
 
 
-@delete_user_router.callback_query(lambda c: c.data == "delete_user")
+@delete_student_router.callback_query(lambda c: c.data == "delete_student")
 async def delete_user_start(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
         classes = await get_all_classes()
@@ -29,7 +29,7 @@ async def delete_user_start(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@delete_user_router.callback_query(lambda c: c.data.startswith("class_delete_"))
+@delete_student_router.callback_query(lambda c: c.data.startswith("class_delete_"))
 async def process_class_selection(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
         class_id = callback_query.data.split("_")[2]
@@ -45,7 +45,7 @@ async def process_class_selection(callback_query: CallbackQuery, state: FSMConte
     await callback_query.answer()
 
 
-@delete_user_router.callback_query(lambda c: c.data.startswith("student_delete_"))
+@delete_student_router.callback_query(lambda c: c.data.startswith("student_delete_"))
 async def process_student_selection(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
         student_id = callback_query.data.split("_")[2]
@@ -67,7 +67,7 @@ async def process_student_selection(callback_query: CallbackQuery, state: FSMCon
     await callback_query.answer()
 
 
-@delete_user_router.callback_query(
+@delete_student_router.callback_query(
     lambda c: c.data in ["confirm_user_delete_yes", "confirm_user_delete_no"]
 )
 async def confirm_delete_user(callback_query: CallbackQuery, state: FSMContext):
@@ -104,7 +104,7 @@ async def confirm_delete_user(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@delete_user_router.callback_query(lambda c: c.data == "back_to_classes")
+@delete_student_router.callback_query(lambda c: c.data == "back_to_classes")
 async def back_to_classes(callback_query: CallbackQuery, state: FSMContext):
     classes = await get_all_classes()
     keyboard = await class_keyboard(classes, "delete")
@@ -114,7 +114,7 @@ async def back_to_classes(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@delete_user_router.callback_query(lambda c: c.data == "back_to_students")
+@delete_student_router.callback_query(lambda c: c.data == "back_to_students")
 async def back_to_students(callback_query: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     class_id = data.get("selected_class")

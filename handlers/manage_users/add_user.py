@@ -6,8 +6,9 @@ from utils.detect_admin import is_admin
 from keyboards.default.role import role_keyboard
 from firebase.functions.users import save_user_data
 from firebase.functions.classes import get_all_classes, get_class_data
+from firebase.functions.subjects import get_subject_by_id
 from keyboards.inline.classes import classes_keyboard
-from keyboards.inline.users import cancel_keyboard
+from keyboards.inline.users import cancel_keyboard, subjects_keyboard
 
 add_user_router = Router()
 
@@ -61,7 +62,6 @@ async def process_user_id(message: Message, state: FSMContext):
         user_id = int(message.text)
         await state.update_data(user_id=user_id)
     except ValueError:
-        # Handle multiple error messages stacking by deleting previous error
         error_msg_id = data.get("error_msg_id")
         if error_msg_id:
             await message.bot.delete_message(message.chat.id, error_msg_id)
@@ -104,15 +104,18 @@ async def process_role_message(message: Message, state: FSMContext):
         await state.clear()
         await message.answer("User creation process has been canceled.")
         return
+
     data = await state.get_data()
-    classes = await get_all_classes()
     role_msg_id = data.get("role_msg_id")
     if role_msg_id:
         await message.bot.delete_message(message.chat.id, role_msg_id)
     await message.delete()
+
     role = message.text
     await state.update_data(role=role)
+
     if role == "Student":
+        classes = await get_all_classes()
         class_keyboard = await classes_keyboard(classes, "add_user")
         class_msg = await message.answer(
             "<b>Please select the class of the student.</b>",
@@ -120,12 +123,40 @@ async def process_role_message(message: Message, state: FSMContext):
         )
         await state.update_data(class_msg_id=class_msg.message_id)
         await state.set_state(User.student_class)
-    else:
-        await finalize_user_data(message, state)
+
+    elif role == "Teacher":
+        subject_keyboard = await subjects_keyboard()
+        subject_msg = await message.answer(
+            "<b>Please select the teacher's subject.</b>",
+            reply_markup=subject_keyboard,
+        )
+        await state.update_data(subject_msg_id=subject_msg.message_id)
+        await state.set_state(User.position)  
+        
+
+@add_user_router.callback_query(lambda c: c.data.startswith("subject_add_"))
+async def process_subject(callback_query: CallbackQuery, state: FSMContext):
+    if callback_query.data == "Cancel":
+        await state.clear()
+        await callback_query.message.answer("User creation process has been canceled.")
+        await callback_query.answer()
+        return
+
+    data = await state.get_data()
+    subject_msg_id = data.get("subject_msg_id")
+    if subject_msg_id:
+        await callback_query.bot.delete_message(
+            callback_query.message.chat.id, subject_msg_id
+        )
+
+    subject = callback_query.data[8:]
+    await state.update_data(position=subject)
+    await finalize_user_data(callback_query, state)
+    await callback_query.answer()
 
 
 @add_user_router.callback_query(lambda c: str(c.data).startswith("class_add_user"))
-async def process_student_class(callback_query: CallbackQuery, state: FSMContext):
+async def process_user_class(callback_query: CallbackQuery, state: FSMContext):
     if callback_query.data == "Cancel":
         await state.clear()
         await callback_query.message.answer("User creation process has been canceled.")
@@ -137,45 +168,8 @@ async def process_student_class(callback_query: CallbackQuery, state: FSMContext
             callback_query.message.chat.id, class_msg_id
         )
     class_id = callback_query.data[15::]
-    await state.update_data(student_class=class_id)
+    await state.update_data(user_class=class_id)
     await finalize_user_data(callback_query, state)
-
-
-async def finalize_user_data(
-    message_or_callback: Message | CallbackQuery, state: FSMContext
-):
-    data = await state.get_data()
-    fullname = data.get("fullname")
-    user_id = data.get("user_id")
-    username = data.get("username")
-    role = data.get("role")
-    class_id = data.get("student_class") if role == "Student" else None
-    student_class = await get_class_data(class_id) if class_id else None
-
-    # Display user information
-    info_message = (
-        f"<b>New {role} added</b>\n"
-        f"👤 <b>Name:</b> {fullname}\n"
-        f"🆔 <b>ID:</b> {user_id}\n"
-        f"🌐 <b>Username:</b> {username}\n"
-    )
-    if student_class:
-        info_message += f"🏫 <b>Class:</b> {student_class['name']}"
-
-    if isinstance(message_or_callback, Message):
-        await message_or_callback.answer(info_message)
-    elif isinstance(message_or_callback, CallbackQuery):
-        await message_or_callback.message.answer(info_message)
-
-    user_data = {
-        "fullname": fullname,
-        "user_id": user_id,
-        "username": username,
-        "role": role,
-        "class": student_class["id"] if student_class else None,
-    }
-    await save_user_data(user_data)
-    await state.clear()
 
 
 @add_user_router.callback_query(lambda c: c.data == "cancel_add_user")
@@ -201,3 +195,48 @@ async def cancel_add_user(callback_query: CallbackQuery, state: FSMContext):
     await state.clear()
     await callback_query.message.answer("User creation process has been canceled.")
     await callback_query.answer()
+
+
+async def finalize_user_data(
+    message_or_callback: Message | CallbackQuery, state: FSMContext
+):
+    data = await state.get_data()
+    fullname = data.get("fullname")
+    user_id = data.get("user_id")
+    username = data.get("username")
+    role = data.get("role")
+
+    position = data.get("position") if role == "Teacher" else None
+    class_id = data.get("user_class") if role == "Student" else None
+    user_class = await get_class_data(class_id) if class_id else None
+    user_position = await get_subject_by_id(position[4::]) if position else None
+
+    info_message = (
+        f"<b>New {role} added</b>\n"
+        f"👤 <b>Name:</b> {fullname}\n"
+        f"🆔 <b>ID:</b> {user_id}\n"
+        f"🌐 <b>Username:</b> {username}\n"
+    )
+    if role == "Teacher" and position:
+        info_message += f"📌 <b>Position:</b> {user_position['name']}\n"
+    if role == "Student" and user_class:
+        info_message += f"🏫 <b>Class:</b> {user_class['name']}\n"
+
+    if isinstance(message_or_callback, Message):
+        await message_or_callback.answer(info_message)
+    elif isinstance(message_or_callback, CallbackQuery):
+        await message_or_callback.message.answer(info_message)
+
+    user_data = {
+        "fullname": fullname,
+        "user_id": user_id,
+        "username": username,
+        "role": role,
+    }
+    if role == "Teacher" and position:
+        user_data["position"] = position[4::]
+    if role == "Student" and user_class:
+        user_data["class"] = user_class["id"]
+
+    await save_user_data(user_data)
+    await state.clear()
