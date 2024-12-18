@@ -21,3 +21,11 @@ async def set_teacher_commands():
             BotCommand(command="estimate_student", description="Uquvchini baholash"),
         ]
     )
+
+async def set_student_commands():
+    await bot.set_my_commands(
+        commands=[
+            BotCommand(command="start", description="Sinf qo'shish"),
+            BotCommand(command="view_marks", description="Uquvchini baholash"),
+        ]
+    )
