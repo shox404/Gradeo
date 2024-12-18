@@ -71,9 +71,7 @@ async def show_students_for_deletion(callback: CallbackQuery, state: FSMContext)
         await callback.message.edit_text(f"Error loading students: {e}")
 
 
-@delete_mark_router.callback_query(
-    lambda c: c.data.startswith("estimate_student_mark_")
-)
+@delete_mark_router.callback_query(lambda c: c.data.startswith("estimate_student_mark_"))
 async def show_marks_for_deletion(callback: CallbackQuery, state: FSMContext):
     selected_student = callback.data.split("_")[3]
     await state.update_data(selected_student=selected_student)
@@ -91,7 +89,7 @@ async def show_marks_for_deletion(callback: CallbackQuery, state: FSMContext):
         keyboard.append(
             [
                 InlineKeyboardButton(
-                    text=f"{position["name"]} - {mark['mark']}",
+                    text=f"{position['name']} - {mark['mark']}",
                     callback_data=f"confirm_delete_mark_{mark['id']}",
                 )
             ]
@@ -106,9 +104,33 @@ async def show_marks_for_deletion(callback: CallbackQuery, state: FSMContext):
 
 
 @delete_mark_router.callback_query(lambda c: c.data.startswith("confirm_delete_mark_"))
-async def handle_mark_deletion(callback: CallbackQuery, state: FSMContext):
+async def confirm_mark_deletion(callback: CallbackQuery, state: FSMContext):
     try:
         mark_id = callback.data.split("_")[3]
+        await state.update_data(mark_id=mark_id)
+
+        await callback.message.edit_text(
+            text="Are you sure you want to delete this mark?",
+            reply_markup=InlineKeyboardMarkup(
+                inline_keyboard=[
+                    [
+                        InlineKeyboardButton(text="OK", callback_data="delete_mark_ok"),
+                        InlineKeyboardButton(text="No", callback_data="cancel"),
+                    ]
+                ]
+            ),
+        )
+        await state.set_state(Mark.confirm_deletion)
+    except Exception as e:
+        await callback.message.edit_text(f"Error during deletion confirmation: {e}")
+
+
+@delete_mark_router.callback_query(lambda c: c.data == "delete_mark_ok")
+async def handle_mark_deletion(callback: CallbackQuery, state: FSMContext):
+    try:
+        data = await state.get_data()
+        mark_id = data.get("mark_id")
+
         await delete_mark(mark_id)
         await callback.message.edit_text(
             text="The mark has been successfully deleted.", reply_markup=None

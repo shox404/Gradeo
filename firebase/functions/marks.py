@@ -1,5 +1,6 @@
 from firebase.config import db
 from firebase_admin import firestore
+from datetime import datetime, timedelta
 
 
 async def save_mark(class_id: str, student_id: str, mark: int, teacher_id: int):
@@ -22,11 +23,17 @@ async def delete_mark(id):
 
 async def get_marks_for_student(student_id, teacher_id):
     marks_collection = db.collection("marks")
-    query = marks_collection.where("student_id", "==", student_id).where(
-        "teacher_id", "==", teacher_id
+    one_month_ago = datetime.utcnow() - timedelta(days=30)
+
+    query = (
+        marks_collection.where("timestamp", ">=", one_month_ago)
+        .where("student_id", "==", student_id)
+        .where("teacher_id", "==", teacher_id)
     )
+
     docs = query.stream()
     marks = []
+
     for doc in docs:
         mark = doc.to_dict()
         mark["id"] = doc.id
