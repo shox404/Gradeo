@@ -28,3 +28,12 @@ dp.include_router(manage_classes_router)
 dp.include_router(add_class_router)
 dp.include_router(edit_class_router)
 dp.include_router(delete_class_router)
+
+# marks
+from handlers.estimate_student.estimate_student import estimate_student_router
+from handlers.estimate_student.set_mark import set_mark_router
+from handlers.estimate_student.delete_mark import delete_mark_router
+
+dp.include_router(estimate_student_router)
+dp.include_router(set_mark_router)
+dp.include_router(delete_mark_router)

@@ -13,7 +13,6 @@ async def update_teacher_data(teacher_id: str, update_data: dict) -> None:
     """
     Update a teacher's data in the Firestore database.
     """
-    db = firestore.client()
     teacher_ref = db.collection("users").document(teacher_id)
 
     teacher_ref.update(update_data)
@@ -23,7 +22,6 @@ async def get_teachers_by_subject(subject_id: str) -> list:
     """
     Fetches a list of teachers associated with a given subject.
     """
-    db = firestore.client()
     teachers_ref = db.collection("users")
 
     query = teachers_ref.where("position", "==", subject_id)
@@ -38,14 +36,11 @@ async def get_teachers_by_subject(subject_id: str) -> list:
     return teachers
 
 
-async def get_teacher_data(teacher_id: str) -> dict:
+async def get_teacher_data(teacher_id):
     """
     Fetch teacher data by ID from the database.
     """
-    from firebase_admin import firestore
-
-    db = firestore.client()
-    teacher_ref = db.collection("users").document(teacher_id)
+    teacher_ref = db.collection("users").document(str(teacher_id))
     teacher_snapshot = teacher_ref.get()
 
     if teacher_snapshot.exists:
@@ -54,12 +49,9 @@ async def get_teacher_data(teacher_id: str) -> dict:
         return None
 
 
-from firebase_admin import firestore
-
 
 async def get_all_teachers():
     """Retrieve all teachers from the database."""
-    db = firestore.client()
     teachers_ref = db.collection("users")
     query = teachers_ref.where("role", "==", "Teacher")
     try:

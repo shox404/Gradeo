@@ -13,7 +13,6 @@ start_router = Router()
 @start_router.message(CommandStart())
 async def start(message: Message):
     user = await get_user_data(message.from_user.id)
-    print(user)
     if await is_admin(message):
         await set_admin_commands()
     elif user and user["role"] == "Teacher":

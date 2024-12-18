@@ -13,6 +13,15 @@ manage_classes_keyboard = InlineKeyboardMarkup(
     ]
 )
 
+estimate_student_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [
+            InlineKeyboardButton(text="Set Mark", callback_data="set_mark"),
+            InlineKeyboardButton(text="Delete Mark", callback_data="delete_mark"),
+        ],
+    ]
+)
+
 
 async def classes_keyboard(classes, method):
     """

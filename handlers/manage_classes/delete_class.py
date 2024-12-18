@@ -21,7 +21,7 @@ async def delete_class_start(callback_query: CallbackQuery, state: FSMContext):
             await callback_query.message.answer("❌ No classes found.")
             return
 
-        class_keyboard = await classes_keyboard(classes, "delete")
+        class_keyboard = await classes_keyboard(classes, "delete_unique")
         delete_class_msg = await callback_query.message.answer(
             "<b>Please select the class you want to delete</b>",
             reply_markup=class_keyboard,
@@ -34,9 +34,9 @@ async def delete_class_start(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@delete_class_router.callback_query(lambda c: str(c.data).startswith("class_delete_"))
+@delete_class_router.callback_query(lambda c: str(c.data).startswith("class_delete_unique_"))
 async def process_delete_class_choice(callback_query: CallbackQuery, state: FSMContext):
-    class_id = callback_query.data[13:]
+    class_id = callback_query.data.split("_")[4]
     class_data = await get_class_data(class_id)
 
     if class_data:
@@ -53,7 +53,7 @@ async def process_delete_class_choice(callback_query: CallbackQuery, state: FSMC
             reply_markup=delete_confirmation_keyboard,
         )
         await state.update_data(
-            confirm_class_delete_msg_id=confirm_delete_msg.message_id,
+            confirm_unique_msg_id=confirm_delete_msg.message_id,
             last_msg_id=confirm_delete_msg.message_id,
         )
         await state.set_state(DeleteClass.confirm_delete)
