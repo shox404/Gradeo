@@ -9,6 +9,14 @@ async def get_user_data(user_id: int):
     return None
 
 
+async def get_user_role_and_class(user_id: str) -> tuple:
+    user_ref = db.collection("users").document(user_id)
+    user_doc = user_ref.get()
+    if user_doc.exists:
+        user_data = user_doc.to_dict()
+        return user_data.get("role"), user_data.get("class")
+    return None, None
+
 async def update_teacher_data(teacher_id: str, update_data: dict) -> None:
     """
     Update a teacher's data in the Firestore database.
