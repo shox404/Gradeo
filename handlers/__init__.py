@@ -23,11 +23,13 @@ from handlers.manage_classes.main import manage_classes_router
 from handlers.manage_classes.add_class import add_class_router
 from handlers.manage_classes.edit_class import edit_class_router
 from handlers.manage_classes.delete_class import delete_class_router
+from handlers.notify_class.main import notify_class_router
 
 dp.include_router(manage_classes_router)
 dp.include_router(add_class_router)
 dp.include_router(edit_class_router)
 dp.include_router(delete_class_router)
+dp.include_router(notify_class_router)
 
 # marks
 from handlers.estimate_student.main import estimate_student_router

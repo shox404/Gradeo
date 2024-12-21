@@ -172,20 +172,20 @@ async def handle_edit_username(callback_query: CallbackQuery, state: FSMContext)
     await callback_query.answer()
 
 
-@edit_student_router.callback_query(lambda c: c.data.startswith("edit_class_"))
-async def handle_edit_class(callback_query: CallbackQuery, state: FSMContext):
-    """Prompt to select a new class for the student."""
-    student_id = callback_query.data.split("_")[2]
-    classes = await get_all_classes()
-    if not classes:
-        await callback_query.message.answer("❌ No classes available.")
-        return
+# @edit_student_router.callback_query(lambda c: c.data.startswith("edit_class_"))
+# async def handle_edit_class(callback_query: CallbackQuery, state: FSMContext):
+#     """Prompt to select a new class for the student."""
+#     student_id = callback_query.data.split("_")[2]
+#     classes = await get_all_classes()
+#     if not classes:
+#         await callback_query.message.answer("❌ No classes available.")
+#         return
 
-    keyboard = class_selection_keyboard(classes, student_id)
-    await callback_query.message.edit_text(
-        "<b>Select a new class for the student.</b>", reply_markup=keyboard
-    )
-    await callback_query.answer()
+#     keyboard = class_selection_keyboard(classes, student_id)
+#     await callback_query.message.edit_text(
+#         "<b>Select a new class for the student.</b>", reply_markup=keyboard
+#     )
+#     await callback_query.answer()
 
 
 @edit_student_router.message(UpdateStudent.fullname)
@@ -277,7 +277,7 @@ async def back_to_students(callback_query: CallbackQuery, state: FSMContext):
 @edit_student_router.callback_query(lambda c: c.data.startswith("back_to_edit_"))
 async def back_to_edit_options(callback_query: CallbackQuery, state: FSMContext):
     """Go back to the edit options after changing the class."""
-    student_id = callback_query.data.split("_")[2]
+    student_id = callback_query.data.split("_")[3]
     student_data = await get_user_data(student_id)
 
     if not student_data:

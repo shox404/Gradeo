@@ -19,6 +19,7 @@ async def set_teacher_commands():
         commands=[
             BotCommand(command="start", description="Sinf qo'shish"),
             BotCommand(command="estimate_student", description="Uquvchini baholash"),
+            BotCommand(command="notify_class", description="Uquvchini baholash"),
         ]
     )
 

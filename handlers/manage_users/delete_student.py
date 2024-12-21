@@ -21,7 +21,7 @@ async def delete_user_start(callback_query: CallbackQuery, state: FSMContext):
         if not classes:
             await callback_query.message.answer("❌ No classes found.")
             return
-        keyboard = await class_keyboard(classes, "delete")
+        keyboard = await class_keyboard(classes, "select_class_delete_user")
         await state.update_data(current_step="menu")
         await callback_query.message.answer(
             "<b>Select a class to delete students</b>", reply_markup=keyboard
@@ -29,10 +29,10 @@ async def delete_user_start(callback_query: CallbackQuery, state: FSMContext):
     await callback_query.answer()
 
 
-@delete_student_router.callback_query(lambda c: c.data.startswith("class_delete_"))
+@delete_student_router.callback_query(lambda c: c.data.startswith("select_class_delete_user"))
 async def process_class_selection(callback_query: CallbackQuery, state: FSMContext):
     if await is_admin(callback_query):
-        class_id = callback_query.data.split("_")[2]
+        class_id = callback_query.data.split("_")[4]
         students = await get_users_in_class(class_id)
         if not students:
             await callback_query.message.answer("❌ No students found in this class.")

@@ -110,13 +110,15 @@ def create_keyboard(rows):
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
 
-def class_selection_keyboard(classes: list, student_id: str) -> InlineKeyboardMarkup:
+def class_selection_keyboard(
+    entity: str, classes: list, student_id: str
+) -> InlineKeyboardMarkup:
     keyboard = InlineKeyboardMarkup()
     for cls in classes:
         keyboard.add(
             InlineKeyboardButton(
                 text=cls["class_name"],
-                callback_data=f"change_class_{student_id}_{cls['class_id']}",
+                callback_data=f"class_{entity}_{student_id}_{cls['class_id']}",
             )
         )
     keyboard.add(InlineKeyboardButton(text="⬅️ Back", callback_data="back_to_students"))
@@ -124,15 +126,12 @@ def class_selection_keyboard(classes: list, student_id: str) -> InlineKeyboardMa
 
 
 async def class_keyboard(classes, method):
-    """
-    Generate a keyboard for selecting classes.
-    Each button represents a class with its name, arranged in 3 columns.
-    """
+    """Generate a keyboard for selecting classes."""
     inline_keyboard = [
         [
             InlineKeyboardButton(
                 text=class_data["name"],
-                callback_data=f"class_{method}_{class_data['id']}",
+                callback_data=f"{method}_{class_data['id']}",
             )
             for class_data in classes[i : i + 3]
         ]
@@ -181,7 +180,7 @@ edit_options_keyboard = InlineKeyboardMarkup(
 
 
 cancel_keyboard = create_keyboard(
-    [[InlineKeyboardButton(text="❌ Cancel", callback_data="cancel_add_user")]]
+    [[InlineKeyboardButton(text="Cancel", callback_data="cancel_add_user")]]
 )
 
 
