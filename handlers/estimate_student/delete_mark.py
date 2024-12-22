@@ -141,7 +141,7 @@ async def handle_mark_deletion(callback: CallbackQuery, state: FSMContext):
     await state.clear()
 
 
-@delete_mark_router.callback_query(lambda c: c.data == "cancel")
+@delete_mark_router.callback_query(lambda c: c.data == "cancel_")
 async def cancel_action(callback: CallbackQuery, state: FSMContext):
     await callback.message.edit_text("Operation cancelled.", reply_markup=None)
     await state.clear()

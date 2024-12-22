@@ -33,8 +33,10 @@ estimate_student_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             create_inline_button("Set Mark", "set_mark"),
+        ],
+        [
             create_inline_button("Delete Mark", "delete_mark"),
-        ]
+        ],
     ]
 )
 
