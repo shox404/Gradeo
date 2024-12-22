@@ -19,9 +19,27 @@ async def get_subjects_keyboard() -> InlineKeyboardMarkup:
     subject_buttons.append(
         [
             InlineKeyboardButton(
-                text="🔙 Back to Marks Menu", callback_data="back_to_marks_menu"
+                text="⬅️ Back to Marks Menu", callback_data="back_to_marks_menu"
             )
         ]
     )
 
     return InlineKeyboardMarkup(inline_keyboard=subject_buttons)
+
+
+def subject_keyboard(subjects) -> InlineKeyboardMarkup:
+    rows = [
+        [
+            InlineKeyboardButton(
+                text=subj["name"], callback_data=f"select_subject_{subj['id']}"
+            )
+            for subj in subjects[i : i + 3]
+        ]
+        for i in range(0, len(subjects), 3)
+    ]
+
+    rows.append(
+        [InlineKeyboardButton(text="Cancel", callback_data="cancel_select_subject")]
+    )
+
+    return InlineKeyboardMarkup(inline_keyboard=rows)

@@ -2,7 +2,7 @@ from aiogram import Router
 from aiogram.types import Message, CallbackQuery
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command
-from keyboards.inline.users import class_keyboard
+from keyboards.inline.classes import classes_keyboard
 from firebase.functions.classes import get_all_classes, get_class_data
 from firebase.functions.users import get_user_data, get_users_in_class
 from aiogram.fsm.state import State, StatesGroup
@@ -19,7 +19,7 @@ async def manage_classes(message: Message):
     user = await get_user_data(message.from_user.id)
     if user and user["role"] == "Teacher":
         classes = await get_all_classes()
-        keyboard = await class_keyboard(classes, "notify_class")
+        keyboard = await classes_keyboard(classes, "notify_class")
         await message.answer("<b>Choose a class</b>", reply_markup=keyboard)
     else:
         await message.answer("⛔ You don't have permission to use this command.")
