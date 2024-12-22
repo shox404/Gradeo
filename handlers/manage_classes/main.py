@@ -11,7 +11,7 @@ manage_classes_router = Router()
 async def manage_classes(message: Message):
     if await is_admin(message):
         await message.answer(
-            "<b>Choose an option to manage classes</b>",
+            "<b>Choose an option to manage classes.</b>",
             reply_markup=manage_classes_keyboard,
         )
     else:

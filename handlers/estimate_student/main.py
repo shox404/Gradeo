@@ -13,7 +13,7 @@ async def manage_classes(message: Message):
 
     if user and user["role"] == "Teacher":
         await message.answer(
-            "<b>Choose an option to manage classes</b>",
+            "<b>Choose an option to manage classes.</b>",
             reply_markup=estimate_student_keyboard,
         )
     else:

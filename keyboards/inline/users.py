@@ -134,13 +134,13 @@ delete_user_keyboard = InlineKeyboardMarkup(
 delete_confirmation_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [create_inline_button("Yes", "confirm_user_delete_yes")],
-        [create_inline_button("No", "confirm_user_delete_no")],
+        [create_inline_button("No", "cancel_delete_student")],
     ]
 )
 
 delete_teacher_confirmation_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [create_inline_button("Yes", "confirm_teacher_delete_yes")],
-        [create_inline_button("No", "confirm_teacher_delete_no")],
+        [create_inline_button("No", "cancel_select_subject_delete_teacher")],
     ]
 )
