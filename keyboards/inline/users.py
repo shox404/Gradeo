@@ -40,9 +40,10 @@ async def subject_keyboard(subjects, method):
         ]
         for i in range(0, len(subjects), 2)
     ]
-    inline_keyboard.append(
-        [create_inline_button("⬅️ Back", f"back_to_classes_{method}")]
-    )
+    if method != "delete_teacher":
+        inline_keyboard.append(
+            [create_inline_button("⬅️ Back", f"back_to_classes_{method}")]
+        )
     return create_keyboard(inline_keyboard)
 
 
