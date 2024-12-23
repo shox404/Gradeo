@@ -65,7 +65,6 @@ async def process_delete_subject_choice(callback: CallbackQuery, state: FSMConte
 async def confirm_delete_subject(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     subject_data = data.get("subject_data")
-    print(subject_data)
     if not subject_data:
         await callback.answer("❌ Invalid subject data. Please try again.")
         await state.clear()

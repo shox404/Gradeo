@@ -79,7 +79,6 @@ async def update_subject_name(message: Message, state: FSMContext):
     new_name = message.text.strip()
     subject_data = data["subject_data"]
     subject_data["name"] = new_name
-    print(subject_data)
     success = await update_subject(subject_data["id"], subject_data)
     if success:
         await message.answer("<b>✅ Subject name updated successfully!</b>")

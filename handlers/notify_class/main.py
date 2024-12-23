@@ -55,7 +55,6 @@ async def handle_teacher_message(message: Message, state: FSMContext):
             return
         for student in students:
             try:
-                print(student)
                 await message.bot.send_message(
                     student["id"],
                     f"📢 <b>Notification from the teacher ({user["fullname"]}):</b>\n\n{message.text}",
