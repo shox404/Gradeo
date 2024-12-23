@@ -2,7 +2,7 @@ from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 from firebase.functions.subjects import get_all_subjects
 
 
-def create_inline_button(text: str, callback_data: str) -> InlineKeyboardButton:
+def create_inline_button(text, callback_data) -> InlineKeyboardButton:
     return InlineKeyboardButton(text=text, callback_data=callback_data)
 
 
@@ -17,9 +17,9 @@ async def users_keyboard(users, method):
                 f"{user['fullname']} ({user['username']})",
                 f"student_{method}_{user['id']}",
             )
-            for user in users[i : i + 3]
+            for user in users[i : i + 2]
         ]
-        for i in range(0, len(users), 3)
+        for i in range(0, len(users), 2)
     ]
     inline_keyboard.append(
         [create_inline_button("⬅️ Back", f"back_to_classes_{method}")]
@@ -30,10 +30,15 @@ async def users_keyboard(users, method):
 async def subject_keyboard(subjects, method):
     inline_keyboard = [
         [
-            create_inline_button(subject["name"], f"{method}_subject_{subject['id']}")
-            for subject in subjects[i : i + 3]
+            create_inline_button(
+                (
+                    subject["name"] if subject["name"] else "Unnamed Subject"
+                ),  # Default value if name is None or empty
+                f"{method}_subject_{subject['id']}",
+            )
+            for subject in subjects[i : i + 2]
         ]
-        for i in range(0, len(subjects), 3)
+        for i in range(0, len(subjects), 2)
     ]
     inline_keyboard.append(
         [create_inline_button("⬅️ Back", f"back_to_classes_{method}")]
@@ -48,9 +53,9 @@ async def teacher_keyboard(teachers, method):
                 f"{teacher['fullname']} ({teacher['username']})",
                 f"teacher_{method}_{teacher['id']}",
             )
-            for teacher in teachers[i : i + 3]
+            for teacher in teachers[i : i + 2]
         ]
-        for i in range(0, len(teachers), 3)
+        for i in range(0, len(teachers), 2)
     ]
     inline_keyboard.append(
         [create_inline_button("⬅️ Back", f"back_to_subjects_{method}")]
@@ -62,7 +67,10 @@ async def subjects_keyboard():
     subjects = await get_all_subjects()
     inline_keyboard = [
         [
-            create_inline_button(subject["name"], f"subject_add_{subject['id']}")
+            create_inline_button(
+                subject["name"] if subject["name"] else "Unnamed Subject",
+                f"subject_add_{subject['id']}",
+            )
             for subject in subjects[i : i + 2]
         ]
         for i in range(0, len(subjects), 2)

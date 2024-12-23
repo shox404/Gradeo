@@ -25,7 +25,7 @@ async def start(message: Message):
     elif user and user["role"] == "Student":
         await set_student_commands()
     elif not user:
-        for admin in ADMINS:
+        for admin in list(ADMINS):
             user = message.from_user
             full_name = f"{user.first_name} {user.last_name if user.last_name is not None else ""}"
             data = f"<b>Full Name: <i>{full_name}</i></b>\n<b>ID: <i>{user.id}</i></b> \n<b>User Name: <i>@{user.username}</i></b>"
