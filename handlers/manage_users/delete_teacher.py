@@ -31,12 +31,12 @@ async def delete_messages_from_state(data, chat_id):
 async def delete_teacher_start(callback: CallbackQuery, state: FSMContext):
     subjects = await get_all_subjects()
     if not subjects:
-        await callback.answer("❌ No subjects found.")
+        await callback.answer("❌ Предметы не найдены.")
         return
     keyboard = await subject_keyboard(subjects, "delete_teacher")
     await state.update_data(current_step="menu")
     await callback.message.answer(
-        "<b>Select a subject to delete teachers</b>", reply_markup=keyboard
+        "<b>Выберите предмет для удаления учителей</b>", reply_markup=keyboard
     )
     await callback.answer()
 
@@ -48,12 +48,12 @@ async def process_subject_selection(callback: CallbackQuery, state: FSMContext):
     subject_id = callback.data.split("_")[3]
     teachers = await get_teachers_by_subject(subject_id)
     if not teachers:
-        await callback.answer("❌ No teachers found in this subject.")
+        await callback.answer("❌ Учителя по этому предмету не найдены.")
         return
     keyboard = await teacher_keyboard(teachers, "delete_teacher")
     await state.update_data(current_step="subjects", selected_subject=subject_id)
     await callback.message.edit_text(
-        "<b>Select a teacher to delete</b>", reply_markup=keyboard
+        "<b>Выберите учителя для удаления</b>", reply_markup=keyboard
     )
     await callback.answer()
 
@@ -63,13 +63,13 @@ async def process_teacher_selection(callback: CallbackQuery, state: FSMContext):
     teacher_id = callback.data.split("_")[3]
     teacher_data = await get_teacher_data(teacher_id)
     if not teacher_data:
-        await callback.answer("❌ Teacher not found.")
+        await callback.answer("❌ Учитель не найден.")
         return
     await state.update_data(teacher_id=teacher_id, teacher_data=teacher_data)
     confirm_teacher_delete_msg = await callback.message.edit_text(
-        f"Are you sure you want to delete the teacher?\n"
-        f"Name: {teacher_data['fullname']}\n"
-        f"Username: {teacher_data['username']}",
+        f"Вы уверены, что хотите удалить учителя?\n"
+        f"Имя: {teacher_data['fullname']}\n"
+        f"Имя пользователя: {teacher_data['username']}",
         reply_markup=delete_teacher_confirmation_keyboard,
     )
     await state.update_data(
@@ -92,9 +92,9 @@ async def confirm_delete_teacher(callback: CallbackQuery, state: FSMContext):
 
     success = await delete_user_data(teacher_id)
     if success:
-        await callback.answer(f"✅ Teacher with ID {teacher_id} has been deleted.")
+        await callback.answer(f"✅ Учитель с ID {teacher_id} был удален.")
     else:
-        await callback.answer("❌ Failed to delete teacher. Teacher may not exist.")
+        await callback.answer("❌ Не удалось удалить учителя. Он может не существовать.")
 
     await state.clear()
 
@@ -104,7 +104,7 @@ async def back_to_subjects(callback_query: CallbackQuery, state: FSMContext):
     subjects = await get_all_subjects()
     keyboard = await subject_keyboard(subjects, "delete_teacher")
     await callback_query.message.edit_text(
-        "<b>Select a subject to delete teachers.</b>", reply_markup=keyboard
+        "<b>Выберите предмет для удаления учителей.</b>", reply_markup=keyboard
     )
     await callback_query.answer()
 
@@ -116,7 +116,7 @@ async def back_to_teachers(callback: CallbackQuery, state: FSMContext):
     teachers = await get_teachers_by_subject(subject_id)
     keyboard = await teacher_keyboard(teachers, "delete_teacher")
     await callback.message.edit_text(
-        "<b>Select a teacher to delete.</b>", reply_markup=keyboard
+        "<b>Выберите учителя для удаления.</b>", reply_markup=keyboard
     )
     await callback.answer()
 
@@ -127,7 +127,7 @@ async def back_to_teachers(callback: CallbackQuery, state: FSMContext):
 )
 async def cancel_teacher_process(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    await callback.answer("❌ Teacher deletion canceled.")
+    await callback.answer("❌ Удаление учителя отменено.")
 
     await delete_messages_from_state(data, callback.message.chat.id)
 

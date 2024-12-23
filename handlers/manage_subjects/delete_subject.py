@@ -23,18 +23,18 @@ async def delete_subject_start(callback: CallbackQuery, state: FSMContext):
     if await is_admin(callback):
         subjects = await get_all_subjects()
         if not subjects:
-            await callback.answer("❌ No subjects found.")
+            await callback.answer("❌ Предметы не найдены.")
             return
 
         subject_keyboard = await subjects_keyboard(subjects, route)
         delete_subject_msg = await callback.message.answer(
-            "<b>Please select the subject you want to delete</b>",
+            "<b>Выберите предмет, который хотите удалить:</b>",
             reply_markup=subject_keyboard,
         )
         await state.update_data(delete_subject_msg_id=delete_subject_msg.message_id)
         await callback.answer()
     else:
-        await callback.answer("⛔ You don't have permission to use this command.")
+        await callback.answer("⛔ У вас нет прав для выполнения этой команды.")
 
 
 @delete_subject_router.callback_query(lambda c: c.data.startswith(route))
@@ -43,7 +43,7 @@ async def process_delete_subject_choice(callback: CallbackQuery, state: FSMConte
     subject_data = await get_subject_by_id(subject_id)
     subject_data["id"] = subject_id
     if not subject_data:
-        await callback.answer("❌ Subject not found. Please try again.")
+        await callback.answer("❌ Предмет не найден. Попробуйте снова.")
         await state.clear()
         return
 
@@ -53,7 +53,7 @@ async def process_delete_subject_choice(callback: CallbackQuery, state: FSMConte
     msg_id = data.get("delete_subject_msg_id")
     await delete_previous_message(callback.message.chat.id, msg_id)
     confirm_delete_msg = await callback.message.answer(
-        "Are you sure you want to delete this subject?",
+        "Вы уверены, что хотите удалить этот предмет?",
         reply_markup=delete_confirmation_keyboard(),
     )
     await state.update_data(confirm_delete_msg_id=confirm_delete_msg.message_id)
@@ -66,15 +66,15 @@ async def confirm_delete_subject(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     subject_data = data.get("subject_data")
     if not subject_data:
-        await callback.answer("❌ Invalid subject data. Please try again.")
+        await callback.answer("❌ Некорректные данные предмета. Попробуйте снова.")
         await state.clear()
         return
 
     success = await delete_subject_data(subject_data["id"])
     if success:
-        await callback.answer("✅ Subject has been deleted.")
+        await callback.answer("✅ Предмет был удален.")
     else:
-        await callback.answer("❌ Failed to delete subject. The subject may not exist.")
+        await callback.answer("❌ Не удалось удалить предмет. Возможно, он не существует.")
 
     msg = data.get("confirm_delete_msg_id")
     await delete_previous_message(callback.message.chat.id, msg)
@@ -87,7 +87,7 @@ async def handle_cancel_delete_subject(callback: CallbackQuery, state: FSMContex
     data = await state.get_data()
     chat_id = callback.message.chat.id
 
-    await callback.answer("❌ Subject deletion canceled.")
+    await callback.answer("❌ Удаление предмета отменено.")
 
     await delete_previous_message(chat_id, data.get("delete_subject_msg_id"))
     await delete_previous_message(chat_id, data.get("confirm_delete_msg_id"))

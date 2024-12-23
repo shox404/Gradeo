@@ -5,11 +5,11 @@ from loader import bot
 async def set_admin_commands():
     await bot.set_my_commands(
         commands=[
-            BotCommand(command="start", description="Sinf qo'shish"),
-            BotCommand(command="manage_classes", description="Sinf qo'shish"),
-            BotCommand(command="manage_users", description="Foydalanuvchi qo'shish"),
-            BotCommand(command="manage_subjects", description="Fanlarni biriktirish"),
-            BotCommand(command="view_reports", description="Hisobotlarni ko'rish"),
+            BotCommand(command="start", description="Приветственное сообщение"),
+            BotCommand(command="manage_classes", description="Управление классами"),
+            BotCommand(command="manage_users", description="Управление пользователями"),
+            BotCommand(command="manage_subjects", description="Управление предметами"),
+            BotCommand(command="view_reports", description="Просмотр отчетов"),
         ]
     )
 
@@ -17,9 +17,9 @@ async def set_admin_commands():
 async def set_teacher_commands():
     await bot.set_my_commands(
         commands=[
-            BotCommand(command="start", description="Sinf qo'shish"),
-            BotCommand(command="estimate_student", description="Uquvchini baholash"),
-            BotCommand(command="notify_class", description="Uquvchini baholash"),
+            BotCommand(command="start", description="Приветственное сообщение"),
+            BotCommand(command="estimate_student", description="Оценивать студента"),
+            BotCommand(command="notify_class", description="Уведомление класса"),
         ]
     )
 
@@ -27,7 +27,7 @@ async def set_teacher_commands():
 async def set_student_commands():
     await bot.set_my_commands(
         commands=[
-            BotCommand(command="start", description="Sinf qo'shish"),
-            BotCommand(command="view_marks", description="Uquvchini baholash"),
+            BotCommand(command="start", description="Приветственное сообщение"),
+            BotCommand(command="view_marks", description="Просмотр оценок"),
         ]
     )

@@ -8,7 +8,7 @@ async def subjects_keyboard(subjects, route):
     for i, subject in enumerate(subjects):
         name = subject.get("name")
         if not name or not isinstance(name, str):
-            print(f"Invalid subject entry skipped: {subject}")
+            print(f"Недопустимая запись предмета пропущена: {subject}")
             continue
 
         row.append(
@@ -27,12 +27,12 @@ async def edit_option_keyboard():
         inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="Edit Name", callback_data="edit_name_of_subject"
+                    text="Редактировать название", callback_data="edit_name_of_subject"
                 ),
             ],
             [
                 InlineKeyboardButton(
-                    text="Cancel", callback_data="cancel_edit_subject"
+                    text="Отмена", callback_data="cancel_edit_subject"
                 ),
             ],
         ]
@@ -46,7 +46,7 @@ async def get_subjects_keyboard() -> InlineKeyboardMarkup:
     subject_buttons = [
         [
             InlineKeyboardButton(
-                text=subject.to_dict().get("name", "Unnamed Subject"),
+                text=subject.to_dict().get("name", "Неизвестный предмет"),
                 callback_data=f"view_by_subjects_{subject.id}",
             )
         ]
@@ -56,7 +56,7 @@ async def get_subjects_keyboard() -> InlineKeyboardMarkup:
     subject_buttons.append(
         [
             InlineKeyboardButton(
-                text="⬅️ Back to Marks Menu", callback_data="back_to_marks_menu"
+                text="⬅️ Назад в меню оценок", callback_data="back_to_marks_menu"
             )
         ]
     )
@@ -76,16 +76,21 @@ def subject_keyboard(subjects) -> InlineKeyboardMarkup:
     ]
 
     rows.append(
-        [InlineKeyboardButton(text="Cancel", callback_data="cancel_select_subject")]
+        [InlineKeyboardButton(text="Отмена", callback_data="cancel_select_subject")]
     )
 
     return InlineKeyboardMarkup(inline_keyboard=rows)
 
+
 def delete_confirmation_keyboard():
     keyboard = [
         [
-            InlineKeyboardButton(text="Yes, delete", callback_data="confirm_subject_delete_yes"),
-            InlineKeyboardButton(text="No, cancel", callback_data="cancel_delete_subject")
+            InlineKeyboardButton(
+                text="Да, удалить", callback_data="confirm_subject_delete_yes"
+            ),
+            InlineKeyboardButton(
+                text="Нет, отменить", callback_data="cancel_delete_subject"
+            ),
         ]
     ]
     return InlineKeyboardMarkup(inline_keyboard=keyboard)

@@ -37,7 +37,7 @@ def position_selection_keyboard(subjects, teacher_id: str) -> InlineKeyboardMark
     buttons.append(
         [
             InlineKeyboardButton(
-                text="⬅️ Back to Edit Options",
+                text="⬅️ Назад к параметрам редактирования",
                 callback_data=f"back_to_edit_{teacher_id}",
             )
         ]
@@ -49,12 +49,12 @@ def position_selection_keyboard(subjects, teacher_id: str) -> InlineKeyboardMark
 async def handle_edit_teacher(callback_query: CallbackQuery):
     subjects = await get_all_subjects()
     if not subjects:
-        await callback_query.message.answer("❌ No subjects available.")
+        await callback_query.message.answer("❌ Нет доступных предметов.")
         return
 
     keyboard = subject_keyboard(subjects)
     await callback_query.message.answer(
-        "<b>Select a subject to edit its teachers:</b>", reply_markup=keyboard
+        "<b>Выберите предмет для редактирования преподавателей:</b>", reply_markup=keyboard
     )
     await callback_query.answer()
 
@@ -64,12 +64,12 @@ async def handle_subject_selection(callback_query: CallbackQuery, state: FSMCont
     subject_id = callback_query.data.split("_")[2]
     teachers = await get_teachers_by_subject(subject_id)
     if not teachers:
-        await callback_query.answer("❌ No teachers found for this subject.")
+        await callback_query.answer("❌ Преподаватели для этого предмета не найдены.")
         return
 
     keyboard = await teacher_keyboard(teachers, f"{route}_{subject_id}")
     await callback_query.message.edit_text(
-        "<b>Select a teacher to edit.</b>", reply_markup=keyboard
+        "<b>Выберите преподавателя для редактирования.</b>", reply_markup=keyboard
     )
     await state.update_data(selected_subject=subject_id)
     await callback_query.answer()
@@ -81,7 +81,7 @@ async def handle_teacher_selection(callback: CallbackQuery, state: FSMContext):
     teacher_data = await get_teacher_data(teacher_id)
 
     if not teacher_data:
-        await callback.answer("❌ Teacher not found.")
+        await callback.answer("❌ Преподаватель не найден.")
         return
 
     await state.update_data(teacher_id=teacher_id, teacher_data=teacher_data)
@@ -89,9 +89,9 @@ async def handle_teacher_selection(callback: CallbackQuery, state: FSMContext):
     keyboard = edit_teacher_options_keyboard(teacher_id)
     position = await get_subject_by_id(teacher_data.get("position"))
     await callback.message.edit_text(
-        f"Full Name: {teacher_data.get('fullname', 'N/A')}\n"
-        f"Username: {teacher_data.get('username', 'N/A')}\n"
-        f"Position: {position['name']}\n",
+        f"Ф.И.О.: {teacher_data.get('fullname', 'N/A')}\n"
+        f"Имя пользователя: {teacher_data.get('username', 'N/A')}\n"
+        f"Должность: {position['name']}\n",
         reply_markup=keyboard,
     )
     await callback.answer()
@@ -104,7 +104,7 @@ async def handle_edit_teacher_fullname(
     teacher_id = callback_query.data.split("_")[2]
     await state.update_data(teacher_id=teacher_id)
     fullname_msg = await callback_query.message.answer(
-        "<b>Please enter the new full name</b>"
+        "<b>Пожалуйста, введите новое полное имя</b>"
     )
     await state.update_data(fullname_msg_id=fullname_msg.message_id)
     await state.set_state(UpdateTeacher.fullname)
@@ -118,7 +118,7 @@ async def handle_edit_teacher_username(
     teacher_id = callback_query.data.split("_")[2]
     await state.update_data(teacher_id=teacher_id)
     username_msg = await callback_query.message.answer(
-        "<b>Please enter the new username</b>"
+        "<b>Пожалуйста, введите новый имя пользователя</b>"
     )
     await state.update_data(username_msg_id=username_msg.message_id)
     await state.set_state(UpdateTeacher.username)
@@ -132,12 +132,12 @@ async def handle_edit_teacher_position(
     teacher_id = callback_query.data.split("_")[2]
     subjects = await get_all_subjects()
     if not subjects:
-        await callback_query.answer("❌ No subjects available.")
+        await callback_query.answer("❌ Нет доступных предметов.")
         return
 
     keyboard = position_selection_keyboard(subjects, teacher_id)
     await callback_query.message.edit_text(
-        "<b>Select a new position for the teacher:</b>", reply_markup=keyboard
+        "<b>Выберите новую должность для преподавателя:</b>", reply_markup=keyboard
     )
     await callback_query.answer()
 
@@ -155,10 +155,10 @@ async def process_edit_teacher_fullname(message: Message, state: FSMContext):
         try:
             await message.bot.delete_message(message.from_user.id, fullname_msg_id)
         except Exception as e:
-            print(f"Error deleting message: {e}")
+            print(f"Ошибка при удалении сообщения: {e}")
     await message.delete()
 
-    await message.answer(f"✅ Full name updated to: {new_fullname}")
+    await message.answer(f"✅ Полное имя обновлено на: {new_fullname}")
     await state.clear()
 
 
@@ -175,10 +175,10 @@ async def process_edit_teacher_username(message: Message, state: FSMContext):
         try:
             await message.bot.delete_message(message.from_user.id, username_msg_id)
         except Exception as e:
-            print(f"Error deleting message: {e}")
+            print(f"Ошибка при удалении сообщения: {e}")
     await message.delete()
 
-    await message.answer(f"✅ Username updated to: @{new_username}")
+    await message.answer(f"✅ Имя пользователя обновлено на: @{new_username}")
     await state.clear()
 
 
@@ -187,7 +187,7 @@ async def process_change_teacher_position(callback_query: CallbackQuery):
     _, _, teacher_id, new_subject_id = callback_query.data.split("_")
     await update_teacher_data(teacher_id, {"position": new_subject_id})
 
-    await callback_query.answer("✅ Teacher's position has been updated.")
+    await callback_query.answer("✅ Должность преподавателя обновлена.")
 
 
 @edit_teacher_router.callback_query(lambda c: c.data == "back_edit_to_teachers")
@@ -197,12 +197,12 @@ async def back_edit_to_teachers(callback: CallbackQuery, state: FSMContext):
     teachers = await get_teachers_by_subject(subject_id)
 
     if not teachers:
-        await callback.answer("❌ No teachers found.")
+        await callback.answer("❌ Преподаватели не найдены.")
         return
 
     keyboard = await teacher_keyboard(teachers, f"{route}_{subject_id}")
     await callback.message.edit_text(
-        "<b>Select a teacher to edit:</b>", reply_markup=keyboard
+        "<b>Выберите преподавателя для редактирования:</b>", reply_markup=keyboard
     )
     await callback.answer()
 
@@ -213,12 +213,12 @@ async def back_edit_to_teachers(callback: CallbackQuery, state: FSMContext):
 async def back_to_subjects_edit_teacher(callback: CallbackQuery, state: FSMContext):
     subjects = await get_all_subjects()
     if not subjects:
-        await callback.message.answer("❌ No subjects available.")
+        await callback.message.answer("❌ Нет доступных предметов.")
         return
 
     keyboard = subject_keyboard(subjects)
     await callback.message.edit_text(
-        "<b>Select a subject to edit its teachers:</b>", reply_markup=keyboard
+        "<b>Выберите предмет для редактирования преподавателей:</b>", reply_markup=keyboard
     )
     await callback.answer()
 
@@ -229,7 +229,7 @@ async def back_to_teacher_edit_options(callback: CallbackQuery, state: FSMContex
     teacher_data = await get_teacher_data(teacher_id)
 
     if not teacher_data:
-        await callback.answer("❌ Teacher not found.")
+        await callback.answer("❌ Преподаватель не найден.")
         return
 
     await state.update_data(teacher_id=teacher_id, teacher_data=teacher_data)
@@ -238,9 +238,9 @@ async def back_to_teacher_edit_options(callback: CallbackQuery, state: FSMContex
     position = await get_subject_by_id(teacher_data.get("position"))
 
     await callback.message.edit_text(
-        f"Full Name: {teacher_data.get('fullname', 'N/A')}\n"
-        f"Username: {teacher_data.get('username', 'N/A')}\n"
-        f"Position: {position['name']}\n",
+        f"Ф.И.О.: {teacher_data.get('fullname', 'N/A')}\n"
+        f"Имя пользователя: {teacher_data.get('username', 'N/A')}\n"
+        f"Должность: {position['name']}\n",
         reply_markup=keyboard,
     )
     await callback.answer()
@@ -256,7 +256,7 @@ async def cancel_edit_student(callback: CallbackQuery, state: FSMContext):
         data.get("classes_msg_id"),
     ]
 
-    await callback.answer("❌ Teacher edition process has been canceled.")
+    await callback.answer("❌ Процесс редактирования преподавателя отменен.")
 
     for msg_id in msg_ids_to_delete:
         await delete_previous_message(callback.message.chat.id, msg_id)

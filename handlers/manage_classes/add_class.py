@@ -17,12 +17,12 @@ cancel = cancel_keyboard(route)
 async def add_class_start(callback: CallbackQuery, state: FSMContext):
     if await is_admin(callback):
         name_msg = await callback.message.answer(
-            "<b>Please enter the class name.</b>", reply_markup=cancel
+            "<b>Пожалуйста, введите название класса.</b>", reply_markup=cancel
         )
         await state.update_data(name_msg_id=name_msg.message_id)
         await state.set_state(ClassState.name)
     else:
-        await callback.answer("⛔ You don't have permission to use this command.")
+        await callback.answer("⛔ У вас нет прав для использования этой команды.")
     await callback.answer()
 
 
@@ -36,7 +36,7 @@ async def process_name(message: Message, state: FSMContext):
         await message.delete()
 
         teacher_msg = await message.answer(
-            "<b>Please enter the class teacher's name.</b>", reply_markup=cancel
+            "<b>Пожалуйста, введите имя учителя класса.</b>", reply_markup=cancel
         )
         await state.update_data(teacher_msg_id=teacher_msg.message_id)
         await state.set_state(ClassState.teacher)
@@ -56,7 +56,7 @@ async def process_teacher(message: Message, state: FSMContext):
             {"name": updated_data.get("name"), "teacher": updated_data.get("teacher")}
         )
 
-        await message.answer("<b>✅ Class has been successfully added!</b>")
+        await message.answer("<b>✅ Класс был успешно добавлен!</b>")
         await state.clear()
 
 
@@ -65,7 +65,7 @@ async def cancel_add_class(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
     chat_id = callback.message.chat.id
 
-    await callback.answer("❌ Class creation process has been canceled.")
+    await callback.answer("❌ Процесс создания класса был отменен.")
 
     await delete_previous_message(chat_id, data.get("name_msg_id"))
     await delete_previous_message(chat_id, data.get("teacher_msg_id"))

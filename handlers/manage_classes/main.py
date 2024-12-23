@@ -11,8 +11,8 @@ manage_classes_router = Router()
 async def manage_classes(message: Message):
     if await is_admin(message):
         await message.answer(
-            "<b>Choose an option to manage classes.</b>",
+            "<b>Выберите действие для управления классами.</b>",
             reply_markup=manage_classes_keyboard,
         )
     else:
-        await message.answer("⛔ You don't have permission to use this command.")
+        await message.answer("⛔ У вас нет прав для использования этой команды.")

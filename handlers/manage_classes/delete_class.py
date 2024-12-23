@@ -23,19 +23,19 @@ async def delete_class_start(callback: CallbackQuery, state: FSMContext):
     if await is_admin(callback):
         classes = await get_all_classes()
         if not classes:
-            await callback.message.answer("❌ No classes found.")
+            await callback.message.answer("❌ Классы не найдены.")
             await callback.answer()
             return
 
         class_keyboard = await classes_keyboard(classes, route)
         delete_class_msg = await callback.message.answer(
-            "<b>Please select the class you want to delete</b>",
+            "<b>Выберите класс, который вы хотите удалить</b>",
             reply_markup=class_keyboard,
         )
         await state.update_data(delete_class_msg_id=delete_class_msg.message_id)
         await callback.answer()
     else:
-        await callback.answer("⛔ You don't have permission to use this command.")
+        await callback.answer("⛔ У вас нет прав для использования этой команды.")
 
 
 @delete_class_router.callback_query(lambda c: c.data.startswith(route))
@@ -44,7 +44,9 @@ async def process_delete_class_choice(callback: CallbackQuery, state: FSMContext
     class_data = await get_class_data(class_id)
 
     if not class_data:
-        await callback.message.answer("❌ Class not found. Please try again.")
+        await callback.message.answer(
+            "❌ Класс не найден. Пожалуйста, попробуйте снова."
+        )
         await state.clear()
         await callback.answer()
         return
@@ -56,7 +58,7 @@ async def process_delete_class_choice(callback: CallbackQuery, state: FSMContext
     await delete_previous_message(callback.message.chat.id, msg_id)
 
     confirm_delete_msg = await callback.message.answer(
-        f"Are you sure you want to delete the class named '{class_data['name']}'?\n",
+        f"Вы уверены, что хотите удалить класс с названием '{class_data['name']}'?\n",
         reply_markup=delete_confirmation_keyboard,
     )
     await state.update_data(confirm_delete_msg_id=confirm_delete_msg.message_id)
@@ -71,9 +73,11 @@ async def confirm_delete_class(callback: CallbackQuery, state: FSMContext):
 
     success = await delete_class_data(class_data["id"])
     if success:
-        await callback.answer("✅ Class has been deleted.")
+        await callback.answer("✅ Класс был успешно удален.")
     else:
-        await callback.answer("❌ Failed to delete class. The class may not exist.")
+        await callback.answer(
+            "❌ Не удалось удалить класс. Возможно, класс не существует."
+        )
 
     msg = data.get("confirm_delete_msg_id")
     await delete_previous_message(callback.message.chat.id, msg)
@@ -86,7 +90,7 @@ async def handle_cancel_delete_class(callback: CallbackQuery, state: FSMContext)
     data = await state.get_data()
     chat_id = callback.message.chat.id
 
-    await callback.answer("❌ Class deletion canceled.")
+    await callback.answer("❌ Удаление класса отменено.")
 
     await delete_previous_message(chat_id, data.get("delete_class_msg_id"))
     await delete_previous_message(chat_id, data.get("confirm_delete_msg_id"))

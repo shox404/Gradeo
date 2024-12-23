@@ -15,24 +15,24 @@ manage_users_router = Router()
 async def manage_users(message: Message):
     if await is_admin(message):
         await message.answer(
-            "<b>Choose an option to manage users</b>", reply_markup=manage_user_keyboard
+            "<b>Выберите опцию для управления пользователями</b>", reply_markup=manage_user_keyboard
         )
     else:
-        await message.answer("⛔ You don't have permission to use this command.")
+        await message.answer("⛔ У вас нет прав для использования этой команды.")
 
 
 @manage_users_router.callback_query(lambda c: c.data == "edit_user")
 async def edit_user(callback_query: CallbackQuery):
     await callback_query.message.edit_text(
-        "<b>Choose what you want to edit</b>", reply_markup=edit_user_keyboard
+        "<b>Выберите, что вы хотите отредактировать</b>", reply_markup=edit_user_keyboard
     )
     await callback_query.answer()
 
 
 @manage_users_router.callback_query(lambda c: c.data == "delete_user")
-async def edit_user(callback_query: CallbackQuery):
+async def delete_user(callback_query: CallbackQuery):
     await callback_query.message.edit_text(
-        "<b>Choose what you want to delete</b>", reply_markup=delete_user_keyboard
+        "<b>Выберите, что вы хотите удалить</b>", reply_markup=delete_user_keyboard
     )
     await callback_query.answer()
 
@@ -40,6 +40,6 @@ async def edit_user(callback_query: CallbackQuery):
 @manage_users_router.callback_query(lambda c: c.data == "back_to_manage_users")
 async def back_to_manage_users(callback_query: CallbackQuery):
     await callback_query.message.edit_text(
-        "<b>Choose an option to manage users</b>", reply_markup=manage_user_keyboard
+        "<b>Выберите опцию для управления пользователями</b>", reply_markup=manage_user_keyboard
     )
     await callback_query.answer()

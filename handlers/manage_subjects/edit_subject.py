@@ -21,13 +21,13 @@ cancel = cancel_keyboard(route)
 async def edit_subject_start(callback_query: CallbackQuery, state: FSMContext):
     subjects = await get_all_subjects()
     if not subjects:
-        await callback_query.message.answer("❌ No subjects found.")
+        await callback_query.message.answer("❌ Предметы не найдены.")
         await callback_query.answer()
         return
 
     subject_keyboard = await subjects_keyboard(subjects, "edit_subject")
     msg = await callback_query.message.answer(
-        "<b>Select the subject you want to edit:</b>", reply_markup=subject_keyboard
+        "<b>Выберите предмет, который хотите отредактировать:</b>", reply_markup=subject_keyboard
     )
     await state.update_data(initial_msg_id=msg.message_id)
     await callback_query.answer()
@@ -38,9 +38,9 @@ async def process_edit_subject_choice(callback: CallbackQuery, state: FSMContext
     subject_id = callback.data.split("_")[2]
     subject_data = await get_subject_by_id(subject_id)
     subject_data["id"] = subject_id
-    
+
     if not subject_data:
-        await callback.answer("❌ Subject not found.")
+        await callback.answer("❌ Предмет не найден.")
         await state.clear()
         return
 
@@ -51,7 +51,7 @@ async def process_edit_subject_choice(callback: CallbackQuery, state: FSMContext
     await callback.message.delete()
     keyboard = await edit_option_keyboard()
     msg = await callback.message.answer(
-        "<b>What would you like to edit?</b>", reply_markup=keyboard
+        "<b>Что вы хотите отредактировать?</b>", reply_markup=keyboard
     )
     await state.update_data(last_bot_msg_id=msg.message_id)
     await state.set_state(Subject.edit_option)
@@ -64,7 +64,7 @@ async def handle_edit_subject_name(callback: CallbackQuery, state: FSMContext):
     await delete_previous_message(callback.message.chat.id, data.get("last_bot_msg_id"))
 
     msg = await callback.message.answer(
-        "<b>Enter the new subject name:</b>", reply_markup=cancel
+        "<b>Введите новое название предмета:</b>", reply_markup=cancel
     )
     await state.update_data(last_bot_msg_id=msg.message_id)
     await state.set_state(Subject.edit_new_name)
@@ -81,9 +81,9 @@ async def update_subject_name(message: Message, state: FSMContext):
     subject_data["name"] = new_name
     success = await update_subject(subject_data["id"], subject_data)
     if success:
-        await message.answer("<b>✅ Subject name updated successfully!</b>")
+        await message.answer("<b>✅ Название предмета успешно обновлено!</b>")
     else:
-        await message.answer("<b>❌ Failed to update subject name.</b>")
+        await message.answer("<b>❌ Не удалось обновить название предмета.</b>")
 
     await state.clear()
 
@@ -91,7 +91,7 @@ async def update_subject_name(message: Message, state: FSMContext):
 @edit_subject_router.callback_query(lambda c: c.data == "cancel_edit_subject")
 async def cancel_edit_subject(callback: CallbackQuery, state: FSMContext):
     data = await state.get_data()
-    await callback.answer("❌ Subject editing canceled.")
+    await callback.answer("❌ Редактирование предмета отменено.")
 
     await delete_previous_message(callback.message.chat.id, data.get("last_bot_msg_id"))
     await delete_previous_message(callback.message.chat.id, data.get("initial_msg_id"))

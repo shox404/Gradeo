@@ -22,13 +22,13 @@ cancel = cancel_keyboard(route)
 async def add_user_start(callback: CallbackQuery, state: FSMContext):
     if await is_admin(callback):
         fullname_msg = await callback.message.answer(
-            "<b>Please enter the full name.</b>", reply_markup=cancel
+            "<b>Пожалуйста, введите полное имя.</b>", reply_markup=cancel
         )
         await state.update_data(fullname_msg_id=fullname_msg.message_id)
         await state.set_state(User.fullname)
         await callback.answer()
     else:
-        await callback.answer("⛔ Sizda ushbu buyruqdan foydalanish huquqi yo'q.")
+        await callback.answer("⛔ У вас нет прав для использования этой команды.")
 
 
 @add_user_router.message(User.fullname)
@@ -40,7 +40,7 @@ async def process_fullname(message: Message, state: FSMContext):
     await state.update_data(fullname=message.text)
 
     user_id_msg = await message.answer(
-        "<b>Please enter the user ID of the new user.</b>", reply_markup=cancel
+        "<b>Пожалуйста, введите ID пользователя нового пользователя.</b>", reply_markup=cancel
     )
     await state.update_data(user_id_msg_id=user_id_msg.message_id)
     await state.set_state(User.user_id)
@@ -57,13 +57,13 @@ async def process_user_id(message: Message, state: FSMContext):
         await state.update_data(user_id=user_id)
     except ValueError:
         error_msg = await message.answer(
-            "❌ Invalid user ID. Please enter a valid numeric user ID."
+            "❌ Неверный ID пользователя. Пожалуйста, введите действительный числовой ID пользователя."
         )
         await state.update_data(error_msg_id=error_msg.message_id)
         return
 
     username_msg = await message.answer(
-        "<b>Please enter the username of the new user.</b>", reply_markup=cancel
+        "<b>Пожалуйста, введите имя пользователя нового пользователя.</b>", reply_markup=cancel
     )
     await state.update_data(username_msg_id=username_msg.message_id)
     await state.set_state(User.username)
@@ -79,13 +79,13 @@ async def process_username(message: Message, state: FSMContext):
     await state.update_data(username=message.text)
 
     role_msg = await message.answer(
-        "<b>Now, select the role for the new user.</b>", reply_markup=role_keyboard
+        "<b>Теперь выберите роль для нового пользователя.</b>", reply_markup=role_keyboard
     )
     await state.update_data(role_msg_id=role_msg.message_id)
     await state.set_state(User.role)
 
 
-@add_user_router.message(lambda m: m.text in ["Teacher", "Student"])
+@add_user_router.message(lambda m: m.text in ["Учитель", "Студент"])
 async def process_role_message(message: Message, state: FSMContext):
     data = await state.get_data()
     await delete_previous_message(message.chat.id, data.get("role_msg_id"))
@@ -94,20 +94,20 @@ async def process_role_message(message: Message, state: FSMContext):
     role = message.text
     await state.update_data(role=role)
 
-    if role == "Student":
+    if role == "Студент":
         classes = await get_all_classes()
         class_keyboard = await classes_keyboard(classes, route)
         class_msg = await message.answer(
-            "<b>Please select the class of the student.</b>",
+            "<b>Пожалуйста, выберите класс студента.</b>",
             reply_markup=class_keyboard,
         )
         await state.update_data(class_msg_id=class_msg.message_id)
         await state.set_state(User.student_class)
 
-    elif role == "Teacher":
+    elif role == "Учитель":
         subject_keyboard = await subjects_keyboard()
         subject_msg = await message.answer(
-            "<b>Please select the teacher's subject.</b>", reply_markup=subject_keyboard
+            "<b>Пожалуйста, выберите предмет учителя.</b>", reply_markup=subject_keyboard
         )
         await state.update_data(subject_msg_id=subject_msg.message_id)
         await state.set_state(User.position)
@@ -144,17 +144,17 @@ async def finalize_user_data(
     username = username_data if "@" in username_data else f"@{username_data}"
     role = data.get("role")
 
-    position = data.get("position") if role == "Teacher" else None
-    class_id = data.get("user_class") if role == "Student" else None
+    position = data.get("position") if role == "Учитель" else None
+    class_id = data.get("user_class") if role == "Студент" else None
     user_class = await get_class_data(class_id) if class_id else None
     user_position = await get_subject_by_id(position[4:]) if position else None
 
-    info_message = f"<b>New {role} added</b>\n"
-    info_message += f"👤 <b>Name:</b> {fullname}\n🆔 <b>ID:</b> {user_id}\n🌐 <b>Username:</b> {username}\n"
-    if role == "Teacher" and user_position:
-        info_message += f"📌 <b>Position:</b> {user_position['name']}\n"
-    if role == "Student" and user_class:
-        info_message += f"🏫 <b>Class:</b> {user_class['name']}\n"
+    info_message = f"<b>Новый {role} добавлен</b>\n"
+    info_message += f"👤 <b>Имя:</b> {fullname}\n🆔 <b>ID:</b> {user_id}\n🌐 <b>Имя пользователя:</b> {username}\n"
+    if role == "Учитель" and user_position:
+        info_message += f"📌 <b>Должность:</b> {user_position['name']}\n"
+    if role == "Студент" and user_class:
+        info_message += f"🏫 <b>Класс:</b> {user_class['name']}\n"
 
     if isinstance(msg_or_callback, Message):
         await msg_or_callback.answer(info_message)
@@ -167,9 +167,9 @@ async def finalize_user_data(
         "username": username,
         "role": role,
     }
-    if role == "Teacher" and position:
+    if role == "Учитель" and position:
         user_data["position"] = position[4:]
-    if role == "Student" and user_class:
+    if role == "Студент" and user_class:
         user_data["class"] = user_class["id"]
 
     await save_user_data(user_data)
@@ -187,7 +187,7 @@ async def cancel_add_user(callback: CallbackQuery, state: FSMContext):
         data.get("class_msg_id"),
     ]
 
-    await callback.answer("❌ User creation process has been canceled.")
+    await callback.answer("❌ Процесс создания пользователя отменен.")
 
     for msg_id in msg_ids_to_delete:
         await delete_previous_message(callback.message.chat.id, msg_id)

@@ -4,11 +4,11 @@ view_marks_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="📚 View Daily Marks", callback_data="view_daily_marks"
+                text="📚 Просмотр ежедневных оценок", callback_data="view_daily_marks"
             )
         ],
         [
-            InlineKeyboardButton(text="⬅️ Back to Menu", callback_data="back_to_menu"),
+            InlineKeyboardButton(text="⬅️ Назад в меню", callback_data="back_to_menu"),
         ],
     ]
 )
@@ -16,7 +16,7 @@ view_marks_keyboard = InlineKeyboardMarkup(
 
 def marks_keyboard(marks):
     """
-    Creates an inline keyboard for selecting marks.
+    Создает inline-клавиатуру для выбора оценок.
     """
     keyboard = [
         [
@@ -27,7 +27,7 @@ def marks_keyboard(marks):
     keyboard.append(
         [
             InlineKeyboardButton(
-                text="⬅️ Back to students", callback_data="back_to_student_set_mark"
+                text="⬅️ Назад к ученикам", callback_data="back_to_student_set_mark"
             )
         ]
     )
