@@ -1,21 +1,33 @@
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
 
 
-def create_inline_button(text: str, callback_data: str) -> InlineKeyboardButton:
-    """Helper function to create an inline button."""
-    return InlineKeyboardButton(text=text, callback_data=callback_data)
+def delete_confirmation_keyboard(route: str) -> InlineKeyboardMarkup:
+    """Creates a confirmation keyboard for delete actions."""
+    keyboard = [
+        [
+            InlineKeyboardButton(text="Yes", callback_data=f"{route}_delete_yes"),
+            InlineKeyboardButton(text="Cancel", callback_data=f"{route}_delete_cancel"),
+        ]
+    ]
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def create_inline_button(text, callback_data):
+    return InlineKeyboardButton(
+        text=text or "Unnamed Class", callback_data=callback_data
+    )
 
 
 async def classes_keyboard(classes, method):
-    """Generate a keyboard for selecting classes with pagination (3 buttons per row)."""
-    keyboard = [
-        [
-            create_inline_button(class_data["name"], f"{method}_{class_data['id']}")
-            for class_data in classes[i : i + 3]
-        ]
-        for i in range(0, len(classes), 3)
-    ]
-    keyboard.append([create_inline_button("Cancel", f"cancel_{method}")])
+    keyboard = []
+    for class_data in classes:
+        class_name = class_data.get("name") or "Unnamed Class"
+        class_id = class_data.get("id")
+        if not class_id:
+            continue
+
+        keyboard.append([create_inline_button(class_name, f"{method}_{class_id}")])
+
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
 
 
@@ -25,6 +37,16 @@ manage_classes_keyboard = InlineKeyboardMarkup(
         [
             create_inline_button("Edit Class", "edit_class"),
             create_inline_button("Delete Class", "delete_class"),
+        ],
+    ]
+)
+
+manage_subjects_keyboard = InlineKeyboardMarkup(
+    inline_keyboard=[
+        [create_inline_button("Add Subject", "add_subject")],
+        [
+            create_inline_button("Edit Subject", "edit_subject"),
+            create_inline_button("Delete Subject", "delete_subject"),
         ],
     ]
 )

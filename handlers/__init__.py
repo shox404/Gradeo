@@ -31,6 +31,17 @@ dp.include_router(edit_class_router)
 dp.include_router(delete_class_router)
 dp.include_router(notify_class_router)
 
+# classes
+from handlers.manage_subjects.main import manage_subjects_router
+from handlers.manage_subjects.add_subject import add_subject_router
+from handlers.manage_subjects.edit_subject import edit_subject_router
+from handlers.manage_subjects.delete_subject import delete_subject_router
+
+dp.include_router(manage_subjects_router)
+dp.include_router(add_subject_router)
+dp.include_router(edit_subject_router)
+dp.include_router(delete_subject_router)
+
 # marks
 from handlers.estimate_student.main import estimate_student_router
 from handlers.estimate_student.set_mark import set_mark_router
