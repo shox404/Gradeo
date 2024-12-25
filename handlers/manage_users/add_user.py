@@ -85,7 +85,7 @@ async def process_username(message: Message, state: FSMContext):
     await state.set_state(User.role)
 
 
-@add_user_router.message(lambda m: m.text in ["Учитель", "Студент"])
+@add_user_router.message(lambda m: m.text in ["Teacher", "Student"])
 async def process_role_message(message: Message, state: FSMContext):
     data = await state.get_data()
     await delete_previous_message(message.chat.id, data.get("role_msg_id"))
@@ -94,7 +94,7 @@ async def process_role_message(message: Message, state: FSMContext):
     role = message.text
     await state.update_data(role=role)
 
-    if role == "Студент":
+    if role == "Student":
         classes = await get_all_classes()
         class_keyboard = await classes_keyboard(classes, route)
         class_msg = await message.answer(
@@ -104,7 +104,7 @@ async def process_role_message(message: Message, state: FSMContext):
         await state.update_data(class_msg_id=class_msg.message_id)
         await state.set_state(User.student_class)
 
-    elif role == "Учитель":
+    elif role == "Teacher":
         subject_keyboard = await subjects_keyboard()
         subject_msg = await message.answer(
             "<b>Пожалуйста, выберите предмет учителя.</b>", reply_markup=subject_keyboard
@@ -144,16 +144,16 @@ async def finalize_user_data(
     username = username_data if "@" in username_data else f"@{username_data}"
     role = data.get("role")
 
-    position = data.get("position") if role == "Учитель" else None
-    class_id = data.get("user_class") if role == "Студент" else None
+    position = data.get("position") if role == "Teacher" else None
+    class_id = data.get("user_class") if role == "Student" else None
     user_class = await get_class_data(class_id) if class_id else None
     user_position = await get_subject_by_id(position[4:]) if position else None
 
     info_message = f"<b>Новый {role} добавлен</b>\n"
     info_message += f"👤 <b>Имя:</b> {fullname}\n🆔 <b>ID:</b> {user_id}\n🌐 <b>Имя пользователя:</b> {username}\n"
-    if role == "Учитель" and user_position:
+    if role == "Teacher" and user_position:
         info_message += f"📌 <b>Должность:</b> {user_position['name']}\n"
-    if role == "Студент" and user_class:
+    if role == "Student" and user_class:
         info_message += f"🏫 <b>Класс:</b> {user_class['name']}\n"
 
     if isinstance(msg_or_callback, Message):
@@ -167,9 +167,9 @@ async def finalize_user_data(
         "username": username,
         "role": role,
     }
-    if role == "Учитель" and position:
+    if role == "Teacher" and position:
         user_data["position"] = position[4:]
-    if role == "Студент" and user_class:
+    if role == "Student" and user_class:
         user_data["class"] = user_class["id"]
 
     await save_user_data(user_data)

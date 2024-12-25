@@ -9,6 +9,7 @@ from firebase.functions.subjects import get_subject_by_id
 from keyboards.inline.classes import classes_keyboard
 from keyboards.inline.users import users_keyboard
 from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from utils.main import delete_previous_message
 
 route = "delete_mark"
 delete_mark_router = Router()
@@ -74,35 +75,32 @@ async def show_classes_for_deletion(callback: CallbackQuery, state: FSMContext):
             text="Select a class for mark deletion:", reply_markup=keyboard
         )
         await state.set_state(Mark.select_class)
-    except Exception as e:
-        await callback.answer(f"❌ Error loading classes: {e}")
+    except Exception:
+        await callback.answer(f"❌ Error loading classes.")
     await callback.answer()
 
 
 @delete_mark_router.callback_query(lambda c: c.data.startswith("delete_student_mark"))
 async def show_students_for_deletion(callback: CallbackQuery, state: FSMContext):
-    try:
-        selected_class = callback.data.split("_")[3]
-        await state.update_data(selected_class=selected_class)
+    selected_class = callback.data.split("_")[3]
+    await state.update_data(selected_class=selected_class)
 
-        students = await get_users_in_class(selected_class)
-        if not students:
-            await callback.answer("❌ No students found in this class.")
-            return
+    students = await get_users_in_class(selected_class)
+    if not students:
+        await callback.answer("❌ No students found in this class.")
+        return
 
-        keyboard = await users_keyboard(students, "select_student_marks")
-        await callback.message.edit_text(
-            text="Select a student:", reply_markup=keyboard
-        )
-        await state.set_state(Mark.select_student)
-    except Exception as e:
-        await callback.answer(f"❌ Error loading students: {e}")
+    keyboard = await users_keyboard(students, "select_student_marks")
+    await callback.message.edit_text(text="Select a student:", reply_markup=keyboard)
+    await state.set_state(Mark.select_student)
 
 
-@delete_mark_router.callback_query(lambda c: c.data.startswith("select_student_marks"))
+@delete_mark_router.callback_query(
+    lambda c: c.data.startswith("student_select_student_marks")
+)
 async def show_marks_for_deletion(callback: CallbackQuery, state: FSMContext):
     try:
-        selected_student = callback.data.split("_")[3]
+        selected_student = callback.data.split("_")[4]
         await state.update_data(selected_student=selected_student)
 
         teacher_data = await get_teacher_data(callback.from_user.id)
@@ -137,12 +135,13 @@ async def confirm_mark_deletion(callback: CallbackQuery, state: FSMContext):
         await state.update_data(mark_id=mark_id)
 
         keyboard = confirm_keyboard("delete_mark")
-        await callback.message.edit_text(
+        confirmation_msg = await callback.message.edit_text(
             text="Are you sure you want to delete this mark?", reply_markup=keyboard
         )
+        await state.update_data(confirmation_msg_id=confirmation_msg.message_id)
         await state.set_state(Mark.confirm_deletion)
-    except Exception as e:
-        await callback.answer(f"❌ Error during deletion confirmation: {e}")
+    except Exception:
+        await callback.answer(f"❌ Error during deletion confirmation.")
 
 
 @delete_mark_router.callback_query(lambda c: c.data == "delete_mark_yes")
@@ -151,8 +150,9 @@ async def handle_mark_deletion(callback: CallbackQuery, state: FSMContext):
         data = await state.get_data()
         mark_id = data.get("mark_id")
 
-        await delete_mark(mark_id)
         await callback.answer("✅ The mark has been successfully deleted.")
+        await delete_mark(mark_id)
+        await delete_previous_message(callback.message.chat.id, data.get("confirmation_msg_id"))
     except Exception as e:
         await callback.answer(f"❌ Failed to delete the mark: {e}")
     finally:
@@ -163,25 +163,24 @@ async def handle_mark_deletion(callback: CallbackQuery, state: FSMContext):
     lambda c: c.data == "back_to_classes_select_student_marks"
 )
 async def back_to_classes_set_mark(callback: CallbackQuery, state: FSMContext):
-    try:
-        data = await state.get_data()
-        selected_class = data.get("selected_class")
+    classes = await get_all_classes()
+    if not classes:
+        await callback.answer("❌ No classes found.")
+        return
 
-        students = await get_users_in_class(selected_class)
-        if not students:
-            await callback.answer("❌ No students found in this class.")
-            return
-
-        keyboard = await users_keyboard(students, "select_student_marks")
-        await callback.message.edit_text(
-            text="Select a student:", reply_markup=keyboard
-        )
-        await state.set_state(Mark.select_student)
-    except Exception as e:
-        await callback.answer(f"❌ Error loading students: {e}")
+    keyboard = await classes_keyboard(classes, "delete_student_mark")
+    await callback.message.edit_text(
+        text="Select a class for mark deletion:", reply_markup=keyboard
+    )
 
 
 @delete_mark_router.callback_query(lambda c: c.data == "cancel_delete_mark")
 async def cancel_action(callback: CallbackQuery, state: FSMContext):
-    await callback.message.edit_text("❌ Operation cancelled.")
+    data = await state.get_data()
+    chat_id = callback.message.chat.id
+
+    await callback.answer("❌ Delete mark process has been canceled.")
+    await delete_previous_message(chat_id, data.get("selected_class"))
+    await delete_previous_message(chat_id, data.get("confirmation_msg_id"))
+
     await state.clear()
