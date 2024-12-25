@@ -33,3 +33,34 @@ def marks_keyboard(marks):
     )
 
     return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def marks_keyboard_with_cancel(marks, callback_prefix: str) -> InlineKeyboardMarkup:
+    keyboard = [
+        [
+            InlineKeyboardButton(
+                text=f"{mark['subject']} - {mark['mark']}",
+                callback_data=f"{callback_prefix}_mark_{mark['id']}",
+            )
+        ]
+        for mark in marks
+    ]
+    keyboard.append(
+        [InlineKeyboardButton(text="Отмена", callback_data=f"cancel_{callback_prefix}")]
+    )
+    return InlineKeyboardMarkup(inline_keyboard=keyboard)
+
+
+def confirm_keyboard(callback_prefix: str) -> InlineKeyboardMarkup:
+    return InlineKeyboardMarkup(
+        inline_keyboard=[
+            [
+                InlineKeyboardButton(
+                    text="Да", callback_data=f"{callback_prefix}_yes"
+                ),
+                InlineKeyboardButton(
+                    text="Нет", callback_data=f"cancel_{callback_prefix}"
+                ),
+            ]
+        ]
+    )

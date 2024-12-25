@@ -8,58 +8,11 @@ from firebase.functions.marks import get_marks_for_student, delete_mark
 from firebase.functions.subjects import get_subject_by_id
 from keyboards.inline.classes import classes_keyboard
 from keyboards.inline.users import users_keyboard
-from aiogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from keyboards.inline.marks import confirm_keyboard, marks_keyboard_with_cancel
 from utils.main import delete_previous_message
 
 route = "delete_mark"
 delete_mark_router = Router()
-
-
-def students_keyboard(students, callback_prefix: str) -> InlineKeyboardMarkup:
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                text=student["fullname"],
-                callback_data=f"{callback_prefix}_student_{student['id']}",
-            )
-        ]
-        for student in students
-    ]
-    keyboard.append(
-        [InlineKeyboardButton(text="Cancel", callback_data=f"cancel_{callback_prefix}")]
-    )
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-
-def marks_keyboard(marks, callback_prefix: str) -> InlineKeyboardMarkup:
-    keyboard = [
-        [
-            InlineKeyboardButton(
-                text=f"{mark['subject']} - {mark['mark']}",
-                callback_data=f"{callback_prefix}_mark_{mark['id']}",
-            )
-        ]
-        for mark in marks
-    ]
-    keyboard.append(
-        [InlineKeyboardButton(text="Cancel", callback_data=f"cancel_{callback_prefix}")]
-    )
-    return InlineKeyboardMarkup(inline_keyboard=keyboard)
-
-
-def confirm_keyboard(callback_prefix: str) -> InlineKeyboardMarkup:
-    return InlineKeyboardMarkup(
-        inline_keyboard=[
-            [
-                InlineKeyboardButton(
-                    text="Yes", callback_data=f"{callback_prefix}_yes"
-                ),
-                InlineKeyboardButton(
-                    text="No", callback_data=f"cancel_{callback_prefix}"
-                ),
-            ]
-        ]
-    )
 
 
 @delete_mark_router.callback_query(lambda c: c.data == "delete_mark")
@@ -109,7 +62,7 @@ async def show_marks_for_deletion(callback: CallbackQuery, state: FSMContext):
             await callback.answer("❌ No marks found for this student.")
             return
         subject = await get_subject_by_id(teacher_data["position"])
-        keyboard = marks_keyboard(
+        keyboard = marks_keyboard_with_cancel(
             [
                 {
                     "id": mark["id"],
@@ -152,7 +105,9 @@ async def handle_mark_deletion(callback: CallbackQuery, state: FSMContext):
 
         await callback.answer("✅ The mark has been successfully deleted.")
         await delete_mark(mark_id)
-        await delete_previous_message(callback.message.chat.id, data.get("confirmation_msg_id"))
+        await delete_previous_message(
+            callback.message.chat.id, data.get("confirmation_msg_id")
+        )
     except Exception as e:
         await callback.answer(f"❌ Failed to delete the mark: {e}")
     finally:
