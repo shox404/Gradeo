@@ -3,8 +3,9 @@ from aiogram.types import CallbackQuery, InlineKeyboardMarkup, InlineKeyboardBut
 from aiogram.fsm.context import FSMContext
 from states.mark import Mark
 from firebase.functions.classes import get_all_classes, get_class_data
-from firebase.functions.users import get_users_in_class
+from firebase.functions.users import get_users_in_class, get_teacher_data
 from firebase.functions.marks import save_mark
+from firebase.functions.subjects import get_subject_by_id
 from keyboards.inline.classes import classes_keyboard
 from keyboards.inline.users import users_keyboard
 from keyboards.inline.marks import marks_keyboard
@@ -72,6 +73,12 @@ async def handle_mark_selection(callback: CallbackQuery, state: FSMContext):
             student_id=selected_student,
             mark=selected_mark,
             teacher_id=callback.from_user.id,
+        )
+        teacher = await get_teacher_data(callback.from_user.id)
+        subject = await get_subject_by_id(teacher["position"])
+        await callback.bot.send_message(
+            chat_id=selected_student,
+            text=f"You have received a mark of <b>{selected_mark}</b> in <b>{subject["name"]}</b> from <b>{teacher["fullname"]}</b>.",
         )
         await callback.answer(
             f"✅ Mark {selected_mark} has been successfully assigned to the student."
