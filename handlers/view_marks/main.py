@@ -13,8 +13,8 @@ async def view_marks(message: Message):
 
     if user and user["role"] == "Student":
         await message.answer(
-            "<b>Choose an option to view marks</b>",
+            "<b>Выберите опцию для просмотра оценок</b>",
             reply_markup=view_marks_keyboard,
         )
     else:
-        await message.answer("⛔ You don't have permission to use this command.")
+        await message.answer("⛔ У вас нет прав для использования этой команды.")

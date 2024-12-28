@@ -22,7 +22,9 @@ async def handle_daily_marks(callback: CallbackQuery):
     role, user_class_id = await get_user_role_and_class(user_id)
 
     if not role or not user_class_id:
-        await callback.message.edit_text("❌ Unable to retrieve user information.")
+        await callback.message.edit_text(
+            "❌ Невозможно получить информацию о пользователе."
+        )
         return
 
     today = datetime.now(timezone.utc).replace(
@@ -39,12 +41,14 @@ async def handle_daily_marks(callback: CallbackQuery):
     marks_snapshot = query.get()
 
     if marks_snapshot:
-        marks_text = f"<b>📅 Today's Marks ({datetime.now().strftime("%Y-%m-%d")}):</b>\n\n"
+        marks_text = (
+            f"<b>📅 Оценки за сегодня ({datetime.now().strftime('%Y-%m-%d')}):</b>\n\n"
+        )
         for mark in marks_snapshot:
             mark_data = mark.to_dict()
             teacher_data = await get_user_data(mark_data.get("teacher_id"))
             subject_id = teacher_data["position"]
-            student_name = mark_data.get("student_name", "Unknown Student")
+            student_name = mark_data.get("student_name", "Неизвестный студент")
             mark_value = mark_data.get("mark", "N/A")
             timestamp = mark_data.get("timestamp").strftime("%H:%M")
             subject_ref = db.collection("subjects").document(subject_id)
@@ -53,15 +57,15 @@ async def handle_daily_marks(callback: CallbackQuery):
                 subject = subject_doc.to_dict()
                 subject_name = subject.get("name")
             else:
-                subject_name = "Unknown Subject"
+                subject_name = "Неизвестный предмет"
 
             if role == "Student":
-                marks_text += f"📝 {subject_name}: {mark_value} at {timestamp}\n"
+                marks_text += f"📝 {subject_name}: {mark_value} в {timestamp}\n"
             else:
                 marks_text += (
-                    f"📝 {subject_name} - {student_name}: {mark_value} at {timestamp}\n"
+                    f"📝 {subject_name} - {student_name}: {mark_value} в {timestamp}\n"
                 )
     else:
-        marks_text = "❌ No marks available for today."
+        marks_text = "❌ Оценки за сегодня отсутствуют."
 
     await callback.message.edit_text(marks_text)
