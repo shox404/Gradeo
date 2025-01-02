@@ -9,7 +9,6 @@ async def set_admin_commands():
             BotCommand(command="manage_classes", description="Управление классами"),
             BotCommand(command="manage_users", description="Управление пользователями"),
             BotCommand(command="manage_subjects", description="Управление предметами"),
-            BotCommand(command="view_reports", description="Просмотр отчетов"),
         ]
     )
 
