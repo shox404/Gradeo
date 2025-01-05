@@ -2,18 +2,9 @@ from aiogram import Router, F
 from aiogram.types import CallbackQuery
 from datetime import datetime, timezone
 from firebase.config import db
-from firebase.functions.users import get_user_data
+from firebase.functions.users import get_user_data, get_user_role_and_class
 
 view_daily_marks_router = Router()
-
-
-async def get_user_role_and_class(user_id: str) -> tuple:
-    user_ref = db.collection("users").document(user_id)
-    user_doc = user_ref.get()
-    if user_doc.exists:
-        user_data = user_doc.to_dict()
-        return user_data.get("role"), user_data.get("class")
-    return None, None
 
 
 @view_daily_marks_router.callback_query(F.data == "view_daily_marks")

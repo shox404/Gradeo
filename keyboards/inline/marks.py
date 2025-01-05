@@ -4,7 +4,12 @@ view_marks_keyboard = InlineKeyboardMarkup(
     inline_keyboard=[
         [
             InlineKeyboardButton(
-                text="📚 Просмотр ежедневных оценок", callback_data="view_daily_marks"
+                text="📚 ежедневные оценки", callback_data="view_daily_marks"
+            )
+        ],
+        [
+            InlineKeyboardButton(
+                text="📚 оценки за четверть", callback_data="view_quarter_marks"
             )
         ],
         [

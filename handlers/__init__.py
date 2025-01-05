@@ -48,9 +48,11 @@ from handlers.estimate_student.set_mark import set_mark_router
 from handlers.estimate_student.delete_mark import delete_mark_router
 from handlers.view_marks.main import view_marks_router
 from handlers.view_marks.view_daily_marks import view_daily_marks_router
+from handlers.view_marks.view_quarter_marks import view_quarter_marks
 
 dp.include_router(estimate_student_router)
 dp.include_router(set_mark_router)
 dp.include_router(delete_mark_router)
 dp.include_router(view_marks_router)
 dp.include_router(view_daily_marks_router)
+dp.include_router(view_quarter_marks)
